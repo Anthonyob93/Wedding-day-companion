@@ -105,6 +105,7 @@ var S=null;
 try{S=JSON.parse(localStorage.getItem(LS)||'null')}catch(e){S=null}
 if(!S||!Array.isArray(S.weddings))S={v:1,updatedAt:0,weddings:[]};
 if(!Array.isArray(S.venues))S.venues=[];
+if(!Array.isArray(S.leads))S.leads=[];
 S.settings=Object.assign({},DEF_SETTINGS,S.settings||{});
 if(!S.settings.ver||S.settings.ver<2){if(+S.settings.deliveryDays===21)S.settings.deliveryDays=42;S.settings.ver=2}
 var ui={view:'home',id:null,tab:'day',edit:false,msg:'',arm:null,copyText:null,img:null,venueId:null,imp:null,sunT:null,live:false,heading:null,year:null,wxBusy:false};
@@ -278,6 +279,7 @@ function doSchedule(){
     if(w.alerts.golden){var l=light(w);if(l&&l.goldenD)add(new Date(l.goldenD.getTime()-15*60000),'Golden hour in 15 min','Starts '+l.golden+', sunset '+l.sunset+' · '+w.couple)}
     w.after.forEach(function(x){if(x.done||!w.date)return;add(at(addDays(w.date,+x.offset||0),'09:00'),x.text,w.couple+' · due today')});
   });
+  S.leads.forEach(function(l){if(l.followUp&&(l.status==='new'||l.status==='contacted'))add(at(l.followUp,'10:00'),'Follow up: '+(l.name||'enquiry'),(LTYPE[l.type]||'Enquiry')+(l.date?' \u00b7 '+l.date:'')+(l.phone?' \u00b7 '+l.phone:''))});
   LN.getPending().then(function(p){var c=(p&&p.notifications||[]).map(function(n){return {id:n.id}});return c.length?LN.cancel({notifications:c}):null})
   .catch(function(){}).then(function(){return list.length?LN.schedule({notifications:list}):null}).catch(function(e){ui.msg='Couldn’t set alerts: '+(e&&e.message||e);render()});
 }
@@ -548,6 +550,50 @@ function photoList(owner){ // owner 'v:<id>'
   var v=V(owner.slice(2));if(!v)return null;if(!Array.isArray(v.photos))v.photos=[];return v.photos;
 }
 
+/* ---------- enquiries ---------- */
+var LTYPE={wedding:'Wedding',family:'Family session',pet:'Pet session',event:'Event',other:'Something else'};
+var LSTAT={new:'New',contacted:'Contacted',booked:'Booked',lost:'Not going ahead'};
+function L(id){for(var i=0;i<S.leads.length;i++)if(S.leads[i].id===id)return S.leads[i];return null}
+function telNum(p){return String(p||'').replace(/[^\d+]/g,'')}
+function leadText(l){var first=(String(l.name||'').trim().split(/\s+/)[0])||'there';
+  return 'Hi '+first+', it’s Anthony from OB Photography. Lovely to meet you! This is my number so you have it. I’ll be in touch about your '+(LTYPE[l.type]||'booking').toLowerCase()+(l.date?' ('+l.date+')':'')+' soon. You can see my work at obphotography.uk'}
+function leadEmail(l){var first=(String(l.name||'').trim().split(/\s+/)[0])||'there';
+  return {sub:'Your '+(LTYPE[l.type]||'photography').toLowerCase()+' enquiry – OB Photography',body:'Hi '+first+',\n\nLovely to meet you. As promised, here are my details so you have them.\n\nYou can see my packages and prices at obphotography.uk/pricing. Let me know if you have any questions, or if you’d like to go ahead.\n\nThanks,\nAnthony'}}
+function rLeads(){
+  var t=todayStr(),open=S.leads.filter(function(l){return l.status==='new'||l.status==='contacted'}),closed=S.leads.filter(function(l){return !(l.status==='new'||l.status==='contacted')});
+  open.sort(function(a,b){return (a.followUp||'9999').localeCompare(b.followUp||'9999')});closed.sort(function(a,b){return b.created-a.created});
+  function card(l){var due=l.followUp&&(l.status==='new'||l.status==='contacted')?(l.followUp<t?'<span class="pill red">Follow up overdue</span>':l.followUp===t?'<span class="pill">Follow up today</span>':'<span class="pill">Follow up '+esc(shortDate(l.followUp))+'</span>'):'<span class="pill'+(l.status==='booked'?' green':'')+'">'+esc(LSTAT[l.status]||'')+'</span>';
+    return '<div class="card tap" data-act="openlead" data-l="'+l.id+'"><div class="row between"><h3>'+esc(l.name||'No name')+'</h3>'+due+'</div><div class="small muted">'+esc([LTYPE[l.type],l.date,l.where].filter(Boolean).join(' · '))+'</div></div>'}
+  var h='<div class="row between" style="margin:4px 0 12px"><h1>Enquiries</h1><button class="primary" data-act="newlead">+ Quick enquiry</button></div>'+msg();
+  if(!S.leads.length)h+='<div class="card empty"><p>When someone asks about a booking in person, take their details here instead of handing over your email. The app reminds you to follow up.</p><button class="gold" data-act="newlead">Take an enquiry</button></div>';
+  h+=open.map(card).join('');
+  if(closed.length)h+='<h3 class="muted" style="margin:18px 0 10px">Done</h3>'+closed.map(card).join('');
+  return h+'<button class="ghost full" data-act="home">‹ Back</button>';
+}
+function rLead(){
+  var l=L(ui.leadId);
+  function opt(map,val){return Object.keys(map).map(function(k){return '<option value="'+k+'"'+(k===val?' selected':'')+'>'+esc(map[k])+'</option>'}).join('')}
+  var h='<div class="row between" style="margin:4px 0 6px">'+back('Enquiries','leads')+'</div><h1 style="margin-bottom:12px">'+(l.name?esc(l.name):'Quick enquiry')+'</h1>'+msg();
+  h+='<div class="card"><label class="f"><span>Name</span><input data-lf="name" value="'+esc(l.name)+'" autocomplete="off" id="lname"></label>'+
+  '<label class="f"><span>Mobile</span><input type="tel" data-lf="phone" value="'+esc(l.phone)+'"></label>'+
+  '<label class="f"><span>Email (optional)</span><input type="email" data-lf="email" value="'+esc(l.email)+'"></label>'+
+  '<div class="three"><label class="f"><span>Looking for</span><select data-lf="type">'+opt(LTYPE,l.type)+'</select></label><label class="f"><span>Rough date</span><input data-lf="date" value="'+esc(l.date)+'" placeholder="e.g. June 2027"></label></div>'+
+  '<label class="f"><span>Where</span><input data-lf="where" value="'+esc(l.where)+'" placeholder="Venue or area"></label>'+
+  '<label class="f"><span>Notes</span><textarea data-lf="notes" placeholder="Package they liked, guest numbers, budget, how they heard of you…">'+esc(l.notes)+'</textarea></label>'+
+  '<label class="row small" style="margin:0 0 12px;align-items:flex-start"><input type="checkbox" data-lf="consent" style="width:auto;min-height:0;margin-top:3px"'+(l.consent?' checked':'')+'> <span>They’re happy for me to contact them about this booking'+(l.consent&&l.consentAt?' <span class="muted">(recorded '+esc(new Date(l.consentAt).toLocaleDateString('en-GB'))+')</span>':'')+'</span></label>'+
+  '<div class="three"><label class="f" style="margin:0"><span>Follow up on</span><input type="date" data-lf="followUp" value="'+esc(l.followUp)+'"></label><label class="f" style="margin:0"><span>Status</span><select data-lf="status">'+opt(LSTAT,l.status)+'</select></label></div></div>';
+  var tel=telNum(l.phone);
+  h+='<div class="card"><b>Get in touch</b><div class="small muted" style="margin:2px 0 8px">Texting them now gives them your number and starts the conversation on your phone.</div>';
+  if(tel)h+='<a class="gold-btn" style="text-decoration:none" href="sms:'+esc(tel)+'?body='+encodeURIComponent(leadText(l))+'" data-act="contacted">Text them now</a><div class="three" style="margin-top:8px"><a class="btn-a" style="text-align:center" href="tel:'+esc(tel)+'" data-act="contacted">Call</a>'+(l.email?'<a class="btn-a" style="text-align:center" href="mailto:'+esc(l.email)+'?subject='+encodeURIComponent(leadEmail(l).sub)+'&body='+encodeURIComponent(leadEmail(l).body)+'" data-act="contacted">Email</a>':'<span></span>')+'</div>';
+  else if(l.email)h+='<a class="btn-a" style="display:block;text-align:center" href="mailto:'+esc(l.email)+'?subject='+encodeURIComponent(leadEmail(l).sub)+'&body='+encodeURIComponent(leadEmail(l).body)+'" data-act="contacted">Email them</a>';
+  else h+='<div class="small muted">Add a mobile number or email to contact them.</div>';
+  h+='</div>';
+  if(l.status!=='booked')h+='<button class="primary full" data-act="lead2booking" style="margin-bottom:12px">Turn into a booking</button>';
+  else if(l.bookingId&&S.weddings.some(function(w){return w.id===l.bookingId}))h+='<button class="full" data-act="open" data-id="'+l.bookingId+'" style="margin-bottom:12px">Open the booking</button>';
+  h+='<button class="'+(ui.arm==='dell'?'armed':'danger')+' full" data-act="dell">'+(ui.arm==='dell'?'Tap again to delete this enquiry':'Delete enquiry')+'</button>';
+  return h;
+}
+
 /* ---------- render ---------- */
 var app=document.getElementById('app');
 function msg(){return ui.msg?'<div class="msg">'+esc(ui.msg)+' <button class="ghost sm" data-act="dismiss">OK</button></div>':''}
@@ -562,6 +608,8 @@ function render(){
   else if(ui.view==='venue'&&V(ui.venueId))h=rVenueEdit();
   else if(ui.view==='mileage')h=rMileage();
   else if(ui.view==='settings')h=rSettings();
+  else if(ui.view==='leads')h=rLeads();
+  else if(ui.view==='lead'&&L(ui.leadId))h=rLead();
   else{ui.view='home';h=rHome()}
   app.innerHTML=h+viewer();
 }
@@ -571,6 +619,8 @@ function rHome(){
   var h=msg()+'<div class="row between" style="margin:4px 0 12px"><h1>Bookings</h1><button class="primary" data-act="new">+ Add</button></div>';
   var types=['wedding','family','event'].filter(function(k){return S.weddings.some(function(w){return w.type===k})});
   if(types.length>1)h+='<div class="tabs" style="position:static"><button class="tab'+(!ui.filter?' on':'')+'" data-act="filter" data-f="">All</button>'+types.map(function(k){return '<button class="tab'+(ui.filter===k?' on':'')+'" data-act="filter" data-f="'+k+'">'+{wedding:'Weddings',family:'Families',event:'Events'}[k]+'</button>'}).join('')+'</div>';
+  var lt=todayStr(),lopen=S.leads.filter(function(l){return l.status==='new'||l.status==='contacted'}),ldue=lopen.filter(function(l){return l.followUp&&l.followUp<=lt});
+  h+='<div class="card"><div class="row between"><div><b>Enquiries</b><div class="small muted">'+(lopen.length?lopen.length+' open'+(ldue.length?' \u00b7 <span class="warn">'+ldue.length+' to follow up</span>':''):'Someone asking in person? Take their details.')+'</div></div><div class="row">'+(S.leads.length?'<button class="sm" data-act="leads">View</button>':'')+'<button class="sm gold" data-act="newlead">+ Quick</button></div></div></div>';
   var due=[];S.weddings.forEach(function(w){w.after.forEach(function(x){if(!x.done&&w.date&&w.date<=t){var dd=addDays(w.date,+x.offset||0);if(dd<=addDays(t,3))due.push({w:w,x:x,d:dd})}})});
   due.sort(function(a,b){return a.d.localeCompare(b.d)});
   if(due.length)h+='<div class="card"><div class="row between"><b>After-shoot jobs due</b><span class="pill'+(due.some(function(o){return o.d<t})?' red':'')+'">'+due.length+'</span></div>'+due.slice(0,5).map(function(o){return '<div class="item tap" data-act="openafter" data-id="'+o.w.id+'"><div class="txt grow"><div>'+esc(o.x.text)+'</div><div class="small muted">'+esc(o.w.couple)+'</div></div><span class="pill'+(o.d<t?' red':'')+'">'+(o.d<t?'Overdue':o.d===t?'Today':shortDate(o.d))+'</span></div>'}).join('')+'</div>';
@@ -592,16 +642,17 @@ function venueOptions(sel){
   return h;
 }
 function rNew(){
-  var ty=ui.newType||'wedding',T=TYPES[ty],P=TPLS[ty];
+  var ty=ui.newType||'wedding',T=TYPES[ty],P=TPLS[ty],pf=ui.prefill||{};
   var p=Object.keys(P).map(function(k){return '<option value="'+k+'"'+(k===T.pkgDef?' selected':'')+'>'+esc(P[k].label)+'</option>'}).join('');
   return '<div class="row between" style="margin:4px 0 12px"><h1>New booking</h1><button class="ghost" data-act="home">Cancel</button></div>'+
   '<div class="tabs" style="position:static">'+Object.keys(TYPES).map(function(k){return '<button class="tab'+(k===ty?' on':'')+'" data-act="newtype" data-t="'+k+'">'+esc(TYPES[k].label)+'</button>'}).join('')+'</div>'+
-  '<form id="nf" class="card"><input type="hidden" name="type" value="'+ty+'"><label class="f"><span>'+esc(T.name)+'</span><input name="couple" placeholder="'+esc(T.namePh)+'" required></label>'+
+  '<form id="nf" class="card"><input type="hidden" name="type" value="'+ty+'"><label class="f"><span>'+esc(T.name)+'</span><input name="couple" placeholder="'+esc(T.namePh)+'" value="'+esc(pf.name||'')+'" required></label>'+
   '<label class="f"><span>Date</span><input type="date" name="date" required></label>'+
   '<label class="f"><span>Venue or area</span><select name="where"><option value="">Not sure yet</option>'+venueOptions('')+'</select></label>'+
-  '<label class="f"><span>Venue name (if it’s not in your list)</span><input name="venueName" placeholder="Leave blank to use the choice above"></label>'+
+  '<label class="f"><span>Venue name (if it’s not in your list)</span><input name="venueName" placeholder="Leave blank to use the choice above" value="'+esc(pf.where||'')+'"></label>'+
   '<label class="f"><span>'+esc(T.start)+'</span><input type="time" name="ceremony" value="'+T.startDef+'" required></label>'+
-  '<label class="f"><span>Coverage</span><select name="pkg">'+p+'</select></label>'+
+  '<label class="f"><span>Coverage</span><select name="pkg">'+(pf.pet?p.replace(' selected','').replace('value="pet"','value="pet" selected'):p)+'</select></label>'+
+  (pf.date?'<p class="small muted" style="margin-top:-6px">They said: '+esc(pf.date)+'</p>':'')+
   '<p class="muted small">The timeline is built around the '+esc(T.start.toLowerCase())+'. If you have the questionnaire, you can fill in from it next.</p>'+
   '<button class="primary full" type="submit">Create</button></form>';
 }
@@ -1074,10 +1125,17 @@ function stopLive(){window.removeEventListener('deviceorientationabsolute',onOri
 app.addEventListener('click',function(ev){
   var b=ev.target.closest('[data-act]');if(!b||b.disabled)return;
   var a=b.dataset.act,w=W(),k=b.dataset.k,id=b.dataset.i;
-  if(a!=='delw'&&a!=='imp'&&a!=='delv')ui.arm=null;
+  if(a!=='delw'&&a!=='imp'&&a!=='delv'&&a!=='dell')ui.arm=null;
   if(a==='dismiss'){ui.msg='';return render()}
+  if(a==='new'||a==='home')ui.prefill=null;
   if(a==='new'){ui.view='new';ui.msg='';ui.newType=ui.filter||'wedding';return render()}
   if(a==='newtype'){ui.newType=b.dataset.t;return render()}
+  if(a==='leads'){ui.view='leads';ui.msg='';window.scrollTo(0,0);return render()}
+  if(a==='newlead'){var nl={id:uid(),name:'',phone:'',email:'',type:'wedding',date:'',where:'',notes:'',consent:false,consentAt:null,followUp:addDays(todayStr(),2),status:'new',created:Date.now()};S.leads.push(nl);persist();ui.leadId=nl.id;ui.view='lead';ui.msg='';window.scrollTo(0,0);render();var ln=document.getElementById('lname');if(ln)ln.focus();return}
+  if(a==='openlead'){ui.leadId=b.dataset.l;ui.view='lead';ui.msg='';window.scrollTo(0,0);return render()}
+  if(a==='contacted'){var cl=L(ui.leadId);if(cl&&cl.status==='new'){cl.status='contacted';touch();setTimeout(render,300)}return}
+  if(a==='dell'){if(ui.arm!=='dell'){ui.arm='dell';return render()}S.leads=S.leads.filter(function(x){return x.id!==ui.leadId});ui.arm=null;touch();ui.view='leads';return render()}
+  if(a==='lead2booking'){var bl=L(ui.leadId);if(!bl)return;ui.newType=bl.type==='pet'||bl.type==='family'?'family':bl.type==='event'?'event':'wedding';ui.prefill={name:bl.name,where:bl.where,date:bl.date,leadId:bl.id,pet:bl.type==='pet'};ui.view='new';ui.msg='';window.scrollTo(0,0);return render()}
   if(a==='filter'){ui.filter=b.dataset.f||null;return render()}
   if(a==='home'){ui.view='home';ui.edit=false;ui.copyText=null;ui.img=null;ui.live=false;stopLive();window.scrollTo(0,0);return render()}
   if(a==='backup'||a==='venues'||a==='mileage'||a==='settings'){ui.view=a;ui.copyText=null;ui.msg='';ui.year=null;window.scrollTo(0,0);return render()}
@@ -1118,7 +1176,7 @@ app.addEventListener('click',function(ev){
     try{data=JSON.parse(raw)}catch(e){data=null}
     if(!data||!Array.isArray(data.weddings)){ui.arm=null;ui.msg='That doesn’t look like a backup from this app.';return render()}
     if(ui.arm!=='imp'){ui.arm='imp';render();document.getElementById('imp').value=raw;return}
-    S={v:1,updatedAt:0,weddings:data.weddings,venues:Array.isArray(data.venues)?data.venues:[],settings:Object.assign({},DEF_SETTINGS,data.settings||{})};
+    S={v:1,updatedAt:0,weddings:data.weddings,leads:Array.isArray(data.leads)?data.leads:[],venues:Array.isArray(data.venues)?data.venues:[],settings:Object.assign({},DEF_SETTINGS,data.settings||{})};
     S.weddings.forEach(migrate);ui.arm=null;ui.restoreText='';touch();ui.view='home';ui.msg='Restored '+S.weddings.length+' booking'+(S.weddings.length===1?'':'s')+'.';return render();
   }
   if(!w)return;
@@ -1234,6 +1292,10 @@ app.addEventListener('change',function(ev){
   if(el.dataset.pick&&ui.imp){ui.imp[el.dataset.pick][+el.dataset.ix].off=!el.checked;return}
   if(el.dataset.unpick!=null&&ui.imp){ui.imp.unOff=ui.imp.unOff||{};ui.imp.unOff[+el.dataset.unpick]=!el.checked;return}
   if(el.dataset.cap){var cl=photoList(el.dataset.o);if(cl)cl.forEach(function(x){if(x.id===el.dataset.cap)x.cap=el.value});persist();return}
+  if(el.dataset.lf){var lf=L(ui.leadId);if(!lf)return;var k2=el.dataset.lf;
+    if(k2==='consent'){lf.consent=el.checked;lf.consentAt=el.checked?Date.now():null}else lf[k2]=el.value;
+    if(k2==='followUp'&&el.value)ensurePerm();
+    touch();if(k2!=='notes'&&k2!=='name'&&k2!=='phone'&&k2!=='email'&&k2!=='date'&&k2!=='where')render();else if(k2==='phone'||k2==='email'||k2==='name')render();return}
   if(el.dataset.planpriv){ui.planPriv=el.checked;return}
   if(el.dataset.wetpick&&ui.imp){ui.imp.wetOff=!el.checked;return}
   if(el.dataset.rep&&ui.imp){ui.imp['rep_'+el.dataset.rep]=el.checked;return}
@@ -1284,6 +1346,7 @@ document.getElementById('qpdf').addEventListener('change',function(ev){
 });
 app.addEventListener('input',function(ev){
   var el=ev.target,w=W();
+  if(el.dataset.lf==='notes'){var ln2=L(ui.leadId);if(ln2){ln2.notes=el.value;persist()}return}
   if(w&&(el.dataset.w==='notes'||el.dataset.w==='wet')){w[el.dataset.w]=el.value;persist();return}
   if(w&&el.dataset.k==='toAsk'&&el.dataset.f==='answer'){var it=find(w,'toAsk',el.dataset.i);if(it){it.answer=el.value;persist()}return}
   if(el.dataset.vf&&el.tagName==='TEXTAREA'){var v=V(ui.venueId);if(v){v[el.dataset.vf]=el.value;persist()}}
@@ -1291,7 +1354,11 @@ app.addEventListener('input',function(ev){
 app.addEventListener('submit',function(ev){
   ev.preventDefault();var fd=new FormData(ev.target),f={};fd.forEach(function(v,k){f[k]=v});
   if(f.where&&f.where.indexOf('v:')===0)f.saved=f.where.slice(2);else if(f.where&&f.where.indexOf('a:')===0)f.venue=f.where.slice(2);
-  var w=makeWedding(f);openWed(w.id);
+  var w=makeWedding(f);
+  if(ui.prefill&&ui.prefill.leadId){var ll=L(ui.prefill.leadId);if(ll){ll.status='booked';ll.bookingId=w.id;
+    var c0=w.contacts[0];if(c0&&ll.phone&&!c0.phone){c0.phone=ll.phone;c0.name=ll.name||c0.name}
+    var nt=['From the enquiry on '+new Date(ll.created).toLocaleDateString('en-GB')+':',ll.email?'Email: '+ll.email:'',ll.date?'They said: '+ll.date:'',ll.notes].filter(Boolean).join('\n');w.notes=(w.notes?w.notes+'\n\n':'')+nt;touch()}}
+  ui.prefill=null;openWed(w.id);
 });
 setInterval(function(){
   var w=W();if(ui.view!=='wed'||!w)return;
@@ -1304,6 +1371,7 @@ if(APP){
     if(ui.arm){ui.arm=null;return render()}
     if(ui.view==='import'){if(ui.imp){ui.imp=null;return render()}ui.view='wed';return render()}
     if(ui.view==='venue'){ui.view=ui.retWed?'wed':'venues';return render()}
+    if(ui.view==='lead'){ui.view='leads';return render()}
     if(ui.view==='wed'&&ui.edit){var w=W();if(w)sortTimeline(w);ui.edit=false;return render()}
     if(ui.img){ui.img=null;return render()}
     if(ui.view!=='home'){ui.view='home';ui.copyText=null;ui.live=false;stopLive();window.scrollTo(0,0);return render()}
