@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Wedding Day Companion</title><link rel="stylesheet" href="fonts/fonts.css"><style id="css">
-:root{--cream:#FBF7F1;--card:#FFFFFF;--ink:#1A1A1A;--muted:#6E6A64;--gold:#A88241;--goldsoft:#F3EBDD;--line:#E7E0D5;--ok:#4F7A55;--warn:#B5523B}
+<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Wedding Day</title><link rel="stylesheet" href="fonts/fonts.css"><style>
+:root{--cream:#FBF7F1;--card:#FFFFFF;--ink:#1A1A1A;--muted:#6E6A64;--gold:#A88241;--goldsoft:#F3EBDD;--line:#E7E0D5;--ok:#4F7A55;--warn:#B5523B;--blue:#3E6A8A}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--cream);color:var(--ink);font-family:Jost,system-ui,sans-serif;font-size:16px;line-height:1.4;-webkit-text-size-adjust:100%}
 #app{max-width:640px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 14px calc(40px + env(safe-area-inset-bottom))}
@@ -8,18 +8,20 @@ h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;margin:0
 h1{font-size:30px}h2{font-size:24px}h3{font-size:20px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 12px}
 .card.tap{cursor:pointer}
-.muted{color:var(--muted)}.small{font-size:13px}
+.muted{color:var(--muted)}.small{font-size:13px}.warn{color:var(--warn)}.ok{color:var(--ok)}
 .row{display:flex;align-items:center;gap:10px}
 .between{justify-content:space-between}
 .wrap{flex-wrap:wrap}
 .grow{flex:1;min-width:0}
-button,.btn{font:inherit;font-weight:500;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:10px 14px;min-height:44px;cursor:pointer}
+button{font:inherit;font-weight:500;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:10px 14px;min-height:44px;cursor:pointer}
+button:disabled{opacity:.4}
 button.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
 button.gold{background:var(--gold);color:#fff;border-color:var(--gold)}
 button.ghost{background:transparent;border-color:transparent;color:var(--muted);padding:8px 10px}
 button.danger{color:var(--warn);border-color:#E9C9BF}
 button.armed{background:var(--warn);color:#fff;border-color:var(--warn)}
 button.full{width:100%}
+button.sm{min-height:36px;padding:6px 10px;font-size:14px}
 input,select,textarea{font:inherit;width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--ink);min-height:44px}
 textarea{min-height:90px;resize:vertical}
 label.f{display:block;margin:0 0 12px}
@@ -29,12 +31,13 @@ label.f span{display:block;font-size:13px;color:var(--muted);margin:0 0 4px}
 .tab{white-space:nowrap;border-radius:999px;padding:8px 14px;min-height:40px;font-size:15px}
 .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .tab .n{opacity:.7;font-size:12px;margin-left:4px}
+.tab .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-left:5px;vertical-align:middle}
 .light{background:var(--goldsoft);border-color:#E6D6BA}
-.light .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;text-align:center}
-.light .grid b{display:block;font-size:20px;font-family:"Cormorant Garamond",serif}
-.light .grid span{font-size:12px;color:var(--muted)}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;text-align:center}
+.grid3 b{display:block;font-size:20px;font-family:"Cormorant Garamond",serif}
+.grid3 span{font-size:12px;color:var(--muted)}
 .now{border-color:var(--gold);border-width:2px}
-.now .big{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:600}
+.big{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:600}
 .item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
 .item:first-child{border-top:0}
 .item .tm{font-weight:600;min-width:52px;font-variant-numeric:tabular-nums}
@@ -45,13 +48,12 @@ label.f span{display:block;font-size:13px;color:var(--muted);margin:0 0 4px}
 .chk.on::after{content:"";width:8px;height:14px;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-2px)}
 .edit-row{display:grid;gap:6px;padding:10px 0;border-top:1px solid var(--line)}
 .edit-row:first-child{border-top:0}
-.edit-row .two{display:grid;grid-template-columns:124px 1fr auto;gap:6px;align-items:center}
+.two{display:grid;grid-template-columns:124px 1fr auto;gap:6px;align-items:center}
 .three{display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center}
 .x{min-height:44px;width:44px;padding:0;color:var(--warn)}
-.pill{display:inline-block;font-size:12px;padding:3px 9px;border-radius:999px;background:var(--goldsoft);color:#7A5B25}
-.bar{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:#fff;padding:10px 14px calc(10px + env(safe-area-inset-bottom));z-index:20}
-.bar .in{max-width:640px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between}
-.bar button{background:var(--gold);border-color:var(--gold);color:#fff}
+.pill{display:inline-block;font-size:12px;padding:3px 9px;border-radius:999px;background:var(--goldsoft);color:#7A5B25;white-space:nowrap}
+.pill.red{background:#F6E0D9;color:var(--warn)}
+.pill.green{background:#E1EDE2;color:var(--ok)}
 .msg{background:#FFF4E5;border:1px solid #F1D7AE;border-radius:10px;padding:10px 12px;margin:0 0 12px;font-size:14px}
 .prog{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:8px}
 .prog i{display:block;height:100%;background:var(--gold)}
@@ -59,28 +61,46 @@ a.tel{color:var(--ink);font-weight:500}
 .empty{text-align:center;padding:28px 10px;color:var(--muted)}
 hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 pre.copy{white-space:pre-wrap;font:13px/1.4 ui-monospace,monospace;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;max-height:260px;overflow:auto}
-</style></head><body><div id="app"></div><script id="appjs">
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.compass{display:flex;gap:14px;align-items:center}
+.compass svg{flex:none}
+.wx{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.wx::-webkit-scrollbar{display:none}
+.wx .h{flex:none;min-width:62px;text-align:center;border:1px solid var(--line);border-radius:10px;padding:8px 4px;font-size:13px}
+.wx .h.in{border-color:var(--gold)}
+.wx .h b{display:block;font-size:15px}
+.wx .rain{color:var(--blue);font-weight:600}
+.timer{font-family:"Cormorant Garamond",serif;font-size:34px;font-weight:600;font-variant-numeric:tabular-nums}
+.sel{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}
+.sel:first-child{border-top:0}
+img.preview{width:100%;border-radius:10px;border:1px solid var(--line)}
+table.log{width:100%;border-collapse:collapse;font-size:14px}
+table.log td,table.log th{padding:8px 4px;border-top:1px solid var(--line);text-align:left}
+table.log td.n,table.log th.n{text-align:right;font-variant-numeric:tabular-nums}
+</style></head><body><div id="app"></div><script>
 (function(){
 'use strict';
 var LS='obwd-v1';
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
-var LN=null,APP=null;
-try{if(window.Capacitor&&window.Capacitor.Plugins){LN=window.Capacitor.Plugins.LocalNotifications||null;APP=window.Capacitor.Plugins.App||null}}catch(e){}
+function P(n){try{return window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins[n]||null}catch(e){return null}}
+var LN=P('LocalNotifications'),APP=P('App'),SHARE=P('Share'),FS=P('Filesystem');
+
+/* ---------- data ---------- */
+var DEF_SETTINGS={baseName:'Penygroes',baseLat:53.0560,baseLon:-4.2840,freeMiles:20,rate:0.75,hmrc:0.45,roadFactor:1.3,deliveryDays:21,groupTarget:20};
 var S=null;
 try{S=JSON.parse(localStorage.getItem(LS)||'null')}catch(e){S=null}
 if(!S||!Array.isArray(S.weddings))S={v:1,updatedAt:0,weddings:[]};
-var ui={view:'home',id:null,tab:'day',edit:false,msg:'',arm:null,copyText:null};
+if(!Array.isArray(S.venues))S.venues=[];
+S.settings=Object.assign({},DEF_SETTINGS,S.settings||{});
+var ui={view:'home',id:null,tab:'day',edit:false,msg:'',arm:null,copyText:null,img:null,venueId:null,imp:null,sunT:null,live:false,heading:null,year:null,wxBusy:false};
 
-/* ---------- venues (approximate coordinates) ---------- */
 var VENUES=[
 ['Caernarfon Castle',53.1393,-4.2768],['Pwllheli',52.8886,-4.4176],['Penygroes',53.0560,-4.2840],['Llanberis / Llyn Padarn',53.1190,-4.1300],
 ['Nant Gwrtheyrn',52.9730,-4.4580],['Portmeirion',52.9135,-4.0988],['Criccieth',52.9177,-4.2340],['Abersoch',52.8240,-4.5050],
 ['Bangor',53.2274,-4.1293],['Beaumaris',53.2636,-4.0907],['Conwy',53.2800,-3.8290],['Llandudno',53.3240,-3.8270],
 ['Betws-y-Coed',53.0930,-3.8000],['Porthmadog',52.9280,-4.1330],['Dinas Dinlle',53.0830,-4.3350],['Rhosneigr',53.2290,-4.5080]
 ];
-
-/* ---------- templates (minutes relative to ceremony) ---------- */
 var TPL={
 ceremony:{label:'Ceremony (about 2 hours)',items:[[-30,'Arrive, meet registrar, check light and rules',''],[-20,'Venue details and guests arriving',''],[-10,'Couple arrival / getting into position',''],[0,'Ceremony','Vows, rings, first kiss, signing'],[30,'Congratulations and confetti',''],[45,'Family groups','Have a helper gathering people'],[65,'Couple portraits',''],[90,'Candids and finish','']]},
 half:{label:'Half day (about 4 hours)',items:[[-60,'Arrive, venue and detail shots',''],[-40,'Guests arriving, candids',''],[-10,'Couple arrival / entrance',''],[0,'Ceremony','Vows, rings, first kiss, signing'],[30,'Congratulations and confetti',''],[45,'Family groups','6–8 combinations, about 20 min'],[65,'Couple portraits','25–30 min while the light is good'],[95,'Drinks reception candids',''],[120,'Call to meal / room details',''],[150,'Speeches or meal',''],[180,'Coverage ends','']]},
@@ -91,144 +111,285 @@ function groupTpl(a,b){a=a||'Partner 1';b=b||'Partner 2';return [
 ['Couple with both families',''],['Couple with grandparents',''],['Wedding party',''],['Everyone','']]}
 var SHOTS=['Rings and details','Outfits and flowers','Entrance / walking in','Vows','Ring exchange','First kiss','Signing the register','Confetti','Grandparents with the couple','Couple portraits in best light','Room and table details','Cake','First dance'];
 var KIT=['Batteries charged (plus spares)','Memory cards formatted (plus spares)','Lenses cleaned','Flash and charged batteries','Lens cloth and rain cover','Umbrella','Printed timeline and group list','Venue address and parking checked','Water and snacks','Phone charged'];
+function afterTpl(){var d=+S.settings.deliveryDays||21;return [
+['Back up the cards to two places',0],['Send a few sneak peeks',2],['Cull and edit the gallery',Math.max(3,d-7)],['Deliver the gallery',d],['Ask for a Google review',d+3],['Send the venue a few images (with credit)',d+7],['Write the blog post',d+14],['Format the cards once the backups are checked',d+1]
+].sort(function(x,y){return x[1]-y[1]}).map(function(x){return {id:uid(),text:x[0],offset:x[1],done:false}})}
 
 /* ---------- helpers ---------- */
 function toMin(t){if(!t)return null;var p=String(t).split(':');return (+p[0])*60+(+p[1])}
-function fromMin(m){m=((Math.round(m)%1440)+1440)%1440;var h=Math.floor(m/60),mm=m%60;return (h<10?'0':'')+h+':'+(mm<10?'0':'')+mm}
+function fromMin(m){m=((Math.round(m)%1440)+1440)%1440;var h=Math.floor(m/60),mm=m%60;return pad(h)+':'+pad(mm)}
 function pad(n){return (n<10?'0':'')+n}
-function todayStr(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function dstr(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function todayStr(){return dstr(new Date())}
+function addDays(s,n){var d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return dstr(d)}
 function nowMin(){var d=new Date();return d.getHours()*60+d.getMinutes()}
 function niceDate(s,long){if(!s)return 'No date';var d=new Date(s+'T12:00:00');return d.toLocaleDateString('en-GB',long?{weekday:'long',day:'numeric',month:'long',year:'numeric'}:{weekday:'short',day:'numeric',month:'short',year:'numeric'})}
+function shortDate(s){var d=new Date(s+'T12:00:00');return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}
 function daysUntil(s){if(!s)return null;var a=new Date(todayStr()+'T12:00:00'),b=new Date(s+'T12:00:00');return Math.round((b-a)/86400000)}
 function names(c){var p=String(c||'').split(/\s*(?:&|\+|\band\b)\s*/i).filter(Boolean);return [p[0]||'',p[1]||'']}
 function W(){for(var i=0;i<S.weddings.length;i++)if(S.weddings[i].id===ui.id)return S.weddings[i];return null}
+function V(id){for(var i=0;i<S.venues.length;i++)if(S.venues[i].id===id)return S.venues[i];return null}
 function sortTimeline(w){w.timeline.sort(function(a,b){return (toMin(a.time)||0)-(toMin(b.time)||0)})}
+function money(n){return '£'+(Math.round(n*100)/100).toFixed(2)}
+function done(x){return x.done}
+function migrate(w){
+  if(!w.alerts)w.alerts={on:false,mins:10,golden:true};
+  if(!Array.isArray(w.after))w.after=afterTpl();
+  ['timeline','groups','shots','kit','contacts'].forEach(function(k){if(!Array.isArray(w[k]))w[k]=[]});
+  if(w.wet==null)w.wet='';
+  return w;
+}
+S.weddings.forEach(migrate);
+function loc(w){var v=w.venueId&&V(w.venueId);if(v&&v.lat!=null)return {lat:v.lat,lon:v.lon,name:v.name};return {lat:w.lat,lon:w.lon,name:w.venue}}
 
-/* ---------- sun times (sunrise equation) ---------- */
+/* ---------- sun ---------- */
+var RAD=Math.PI/180;
 function sunAt(dateStr,lat,lon,alt){
   if(!dateStr||lat==null||lon==null||isNaN(lat)||isNaN(lon))return null;
-  var p=dateStr.split('-'),rad=Math.PI/180;
+  var p=dateStr.split('-');
   var jd=Date.UTC(+p[0],+p[1]-1,+p[2],12)/86400000+2440587.5;
-  var n=Math.round(jd-2451545.0);
-  var js=n-lon/360;
+  var n=Math.round(jd-2451545.0),js=n-lon/360;
   var M=(357.5291+0.98560028*js)%360;
-  var C=1.9148*Math.sin(M*rad)+0.02*Math.sin(2*M*rad)+0.0003*Math.sin(3*M*rad);
+  var C=1.9148*Math.sin(M*RAD)+0.02*Math.sin(2*M*RAD)+0.0003*Math.sin(3*M*RAD);
   var L=(M+C+180+102.9372)%360;
-  var jt=2451545.0+js+0.0053*Math.sin(M*rad)-0.0069*Math.sin(2*L*rad);
-  var sd=Math.sin(L*rad)*Math.sin(23.4397*rad),cd=Math.cos(Math.asin(sd));
-  var cw=(Math.sin(alt*rad)-Math.sin(lat*rad)*sd)/(Math.cos(lat*rad)*cd);
+  var jt=2451545.0+js+0.0053*Math.sin(M*RAD)-0.0069*Math.sin(2*L*RAD);
+  var sd=Math.sin(L*RAD)*Math.sin(23.4397*RAD),cd=Math.cos(Math.asin(sd));
+  var cw=(Math.sin(alt*RAD)-Math.sin(lat*RAD)*sd)/(Math.cos(lat*RAD)*cd);
   if(cw<-1||cw>1)return null;
-  var w=Math.acos(cw)/rad;
+  var w=Math.acos(cw)/RAD;
   function t(j){return new Date((j-2440587.5)*86400000)}
   return {rise:t(jt-w/360),set:t(jt+w/360)};
 }
+function sunPos(date,lat,lon){
+  var d=date.getTime()/86400000-10957.5;
+  var M=RAD*(357.5291+0.98560028*d);
+  var C=RAD*(1.9148*Math.sin(M)+0.02*Math.sin(2*M)+0.0003*Math.sin(3*M));
+  var L=M+C+RAD*102.9372+Math.PI,e=RAD*23.4397;
+  var dec=Math.asin(Math.sin(e)*Math.sin(L)),ra=Math.atan2(Math.sin(L)*Math.cos(e),Math.cos(L));
+  var phi=RAD*lat,H=RAD*(280.16+360.9856235*d)-RAD*(-lon)-ra;
+  var az=Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(phi)-Math.tan(dec)*Math.cos(phi));
+  var alt=Math.asin(Math.sin(phi)*Math.sin(dec)+Math.cos(phi)*Math.cos(dec)*Math.cos(H));
+  return {alt:alt/RAD,az:((az/RAD)+180+360)%360};
+}
+var DIRS=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+function dirName(az){return DIRS[Math.round(az/22.5)%16]}
 function fmtT(d){return d?d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/London'}):'–'}
 function light(w){
-  var s=sunAt(w.date,w.lat,w.lon,-0.833),g=sunAt(w.date,w.lat,w.lon,6),b=sunAt(w.date,w.lat,w.lon,-6);
+  var l=loc(w),s=sunAt(w.date,l.lat,l.lon,-0.833),g=sunAt(w.date,l.lat,l.lon,6),b=sunAt(w.date,l.lat,l.lon,-6);
   if(!s)return null;
-  return {sunrise:fmtT(s.rise),golden:g?fmtT(g.set):'–',sunset:fmtT(s.set),blue:b?fmtT(b.set):'–'};
+  return {sunrise:fmtT(s.rise),golden:g?fmtT(g.set):'–',goldenD:g?g.set:null,sunset:fmtT(s.set),sunsetD:s.set,blue:b?fmtT(b.set):'–'};
 }
-
-/* ---------- persistence ---------- */
-function touch(){S.updatedAt=Date.now();try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){ui.msg='Couldn\u2019t save to the phone\u2019s storage. Copy a backup to be safe.'}schedule()}
-
-/* ---------- alerts ---------- */
-var schedT=null;
 function at(dateStr,time){if(!dateStr||!time)return null;var d=new Date(dateStr+'T'+time+':00');return isNaN(d)?null:d}
+
+/* ---------- distance ---------- */
+function crow(lat1,lon1,lat2,lon2){var R=3958.8,a=Math.sin((lat2-lat1)*RAD/2),b=Math.sin((lon2-lon1)*RAD/2);var h=a*a+Math.cos(lat1*RAD)*Math.cos(lat2*RAD)*b*b;return 2*R*Math.asin(Math.sqrt(h))}
+function milesOneWay(w){
+  if(w.miles!=null&&w.miles!==''&&!isNaN(+w.miles))return {m:+w.miles,est:false};
+  var l=loc(w),s=S.settings;if(l.lat==null)return null;
+  return {m:Math.round(crow(s.baseLat,s.baseLon,l.lat,l.lon)*(+s.roadFactor||1.3)),est:true};
+}
+function travelCharge(m){var s=S.settings;return Math.max(0,m-(+s.freeMiles||0))*(+s.rate||0)*2}
+
+/* ---------- storage + alerts ---------- */
+function persist(){S.updatedAt=Date.now();try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){ui.msg='Couldn’t save to the phone’s storage. Share a backup to be safe.'}}
+function touch(){persist();schedule()}
+var schedT=null;
 function schedule(){clearTimeout(schedT);schedT=setTimeout(doSchedule,800)}
 function doSchedule(){
   if(!LN)return;
   var list=[],id=1,now=Date.now();
+  function add(t,title,body){if(t&&t.getTime()>now+5000&&id<450)list.push({id:id++,title:title,body:body,smallIcon:'ic_stat_ob',schedule:{at:t,allowWhileIdle:true}})}
   S.weddings.forEach(function(w){
     if(!w.alerts||!w.alerts.on)return;
     var m=+w.alerts.mins||10;
     w.timeline.forEach(function(x){
-      if(x.done)return;var d=at(w.date,x.time);if(!d)return;var t=new Date(d.getTime()-m*60000);
-      if(t.getTime()>now+5000&&id<400)list.push({id:id++,title:x.title+' at '+x.time,body:(m?'In '+m+' min':'Now')+' \u00b7 '+w.couple+(x.note?' \u00b7 '+x.note:''),schedule:{at:t,allowWhileIdle:true}});
+      if(x.done)return;var d=at(w.date,x.time);if(!d)return;
+      add(new Date(d.getTime()-m*60000),x.title+' at '+x.time,'In '+m+' min · '+w.couple+(x.note?' · '+x.note:''));
     });
-    if(w.alerts.golden){var s=sunAt(w.date,w.lat,w.lon,6);if(s){var g=new Date(s.set.getTime()-15*60000);if(g.getTime()>now+5000)list.push({id:id++,title:'Golden hour in 15 min',body:'Starts '+fmtT(s.set)+', sunset '+fmtT(sunAt(w.date,w.lat,w.lon,-0.833).set)+' \u00b7 '+w.couple,schedule:{at:g,allowWhileIdle:true}})}}
+    if(w.alerts.golden){var l=light(w);if(l&&l.goldenD)add(new Date(l.goldenD.getTime()-15*60000),'Golden hour in 15 min','Starts '+l.golden+', sunset '+l.sunset+' · '+w.couple)}
+    w.after.forEach(function(x){if(x.done||!w.date)return;add(at(addDays(w.date,+x.offset||0),'09:00'),x.text,w.couple+' · due today')});
   });
   LN.getPending().then(function(p){var c=(p&&p.notifications||[]).map(function(n){return {id:n.id}});return c.length?LN.cancel({notifications:c}):null})
-  .catch(function(){}).then(function(){return list.length?LN.schedule({notifications:list}):null}).catch(function(e){ui.msg='Couldn\u2019t set alerts: '+(e&&e.message||e);render()});
+  .catch(function(){}).then(function(){return list.length?LN.schedule({notifications:list}):null}).catch(function(e){ui.msg='Couldn’t set alerts: '+(e&&e.message||e);render()});
 }
 function ensurePerm(){
   if(!LN)return Promise.resolve(false);
   return LN.checkPermissions().then(function(p){if(p.display==='granted')return true;return LN.requestPermissions().then(function(r){return r.display==='granted'})}).catch(function(){return false});
 }
 
-/* ---------- creating ---------- */
+/* ---------- sharing ---------- */
+function shareText(title,text){
+  ui.copyText=null;
+  if(SHARE)return SHARE.share({title:title,text:text}).catch(function(e){if(!/cancel/i.test(String(e&&e.message||e)))copy(text)});
+  copy(text);
+}
+function copy(text){
+  try{navigator.clipboard.writeText(text).then(function(){ui.msg='Copied.';render()},function(){ui.copyText=text;render()})}catch(e){ui.copyText=text;render()}
+}
+function shareFile(name,base64,mime,title){
+  if(SHARE&&FS){
+    return FS.writeFile({path:name,data:base64,directory:'CACHE'}).then(function(r){return SHARE.share({title:title,files:[r.uri]})})
+    .catch(function(e){if(!/cancel/i.test(String(e&&e.message||e))){ui.msg='Couldn’t share: '+(e&&e.message||e);render()}});
+  }
+  return null;
+}
+function b64(str){return btoa(unescape(encodeURIComponent(str)))}
+
+/* ---------- create ---------- */
 function makeWedding(f){
-  var v=VENUES[+f.venue]||null,ab=names(f.couple),c=toMin(f.ceremony)||toMin('13:00'),t=TPL[f.pkg]||TPL.half;
-  var w={id:uid(),couple:f.couple||'New couple',date:f.date||'',venue:f.venueName||(v?v[0]:''),lat:v?v[1]:null,lon:v?v[2]:null,
-    pkg:f.pkg,notes:'',created:Date.now(),alerts:{on:false,mins:10,golden:true},
+  var sv=f.saved?V(f.saved):null,v=VENUES[+f.venue]||null,ab=names(f.couple),c=toMin(f.ceremony)||toMin('13:00'),t=TPL[f.pkg]||TPL.half;
+  var w={id:uid(),couple:f.couple||'New couple',date:f.date||'',venueId:sv?sv.id:null,
+    venue:sv?sv.name:(f.venueName||(v?v[0]:'')),lat:sv?sv.lat:(v?v[1]:null),lon:sv?sv.lon:(v?v[2]:null),
+    pkg:f.pkg,notes:'',wet:'',created:Date.now(),alerts:{on:false,mins:10,golden:true},
     timeline:t.items.map(function(x){return {id:uid(),time:fromMin(c+x[0]),title:x[1],note:x[2],done:false}}),
     groups:groupTpl(ab[0],ab[1]).map(function(x){return {id:uid(),title:x[0],people:x[1],done:false}}),
     shots:SHOTS.map(function(x){return {id:uid(),text:x,done:false}}),
     kit:KIT.map(function(x){return {id:uid(),text:x,done:false}}),
+    after:afterTpl(),
     contacts:[{id:uid(),role:'Couple',name:f.couple||'',phone:''},{id:uid(),role:'Venue coordinator',name:'',phone:''},{id:uid(),role:'Group photo helper',name:'',phone:''}]};
   S.weddings.push(w);touch();return w;
 }
 
-/* ---------- rendering ---------- */
+/* ---------- questionnaire import ---------- */
+var PHONE=/(\+44\s?\(?0?\)?\s?7\d{3}|\b07\d{3})[\s-]?\d{3}[\s-]?\d{3}\b|(\+44\s?\(?0?\)?\s?[12]\d{2,3}|\b0[12]\d{2,3})[\s-]?\d{3}[\s-]?\d{3,4}\b/;
+var TIME=/\b(\d{1,2})(?:[:.](\d{2}))?\s*(am|pm|a\.m\.|p\.m\.)|\b(\d{1,2})[:.](\d{2})\b/i;
+function parseTime(s){
+  var m=TIME.exec(s);if(!m)return null;
+  var h,mm;
+  if(m[1]!=null){h=+m[1];mm=+(m[2]||0);var ap=m[3].toLowerCase().charAt(0);if(ap==='p'&&h<12)h+=12;if(ap==='a'&&h===12)h=0}
+  else{h=+m[4];mm=+m[5];if(h>=1&&h<=7&&!/morning/i.test(s))h+=12}
+  if(h>23||mm>59)return null;
+  return {time:pad(h)+':'+pad(mm),rest:s.replace(m[0],'')};
+}
+function clean(s){return String(s).replace(/^[\s\-–•*·\d.)(]+\s*/,'').replace(/\s+/g,' ').replace(/^[:,\-–\s]+|[:,\-–\s]+$/g,'').trim()}
+function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):s}
+function splitItems(lines){
+  var out=[];
+  lines.forEach(function(l){
+    var parts=l.split(/\s*;\s*|\s+(?=\d+[.)]\s)/);
+    if(parts.length===1&&/,/.test(l)&&!/\(/.test(l)&&l.split(',').length>3&&!/\bwith\b/i.test(l))parts=[l];
+    parts.forEach(function(p){p=clean(p);if(p&&!/^(n\/?a|none|no|tbc|-)$/i.test(p))out.push(p)});
+  });
+  return out;
+}
+function parseQuestionnaire(text){
+  var lines=String(text||'').replace(/\r/g,'').split('\n').map(function(l){return l.trim()}).filter(Boolean);
+  var blocks=[],cur=null;
+  lines.forEach(function(l){
+    if(/\?\s*$/.test(l)&&l.length<220){cur={q:l,a:[]};blocks.push(cur)}
+    else if(cur&&!/^\*?\(?(e\.g\.|for example|optional)/i.test(l)&&!(cur.a.length===0&&/^\*.*\*$/.test(l)))cur.a.push(l);
+    else if(!cur){cur={q:'',a:[l]};blocks.push(cur)}
+  });
+  var R={contacts:[],timeline:[],groups:[],shots:[],notes:[]},seenPhone={};
+  function addContact(line,role){
+    var m=PHONE.exec(line);if(!m)return false;
+    var num=m[0].replace(/[^\d+]/g,'');if(seenPhone[num])return true;seenPhone[num]=1;
+    var nm=clean(line.replace(m[0],'').replace(/\b(mobile|mob|tel|phone|number|no\.?)\b[:.]?/ig,'').replace(/[()]/g,' '));
+    var r=role;var rm=/^([^:\-–]+?)\s*[:\-–]\s*(.+)$/.exec(nm);
+    if(rm&&rm[1].split(' ').length<=4&&/coordinator|planner|helper|usher|best|maid|bride|groom|mum|dad|mother|father|venue|registrar|celebrant|dj|band|florist|witness|contact/i.test(rm[1])){r=cap(rm[1]);nm=rm[2]}
+    R.contacts.push({role:r||'Contact',name:nm,phone:m[0].trim()});return true;
+  }
+  blocks.forEach(function(b){
+    var q=b.q.toLowerCase(),body=b.a;
+    var role=/coordinator|venue/.test(q)?'Venue coordinator':/helper|gather|usher/.test(q)?'Group photo helper':/approve|extra time/.test(q)?'Approves extra time':/day|contact/.test(q)?'Contact on the day':'';
+    var phoneHit=false;body.forEach(function(l){if(addContact(l,role))phoneHit=true});
+    var rest=body.filter(function(l){return !PHONE.test(l)});
+    if(/group|combination|family photo|formal/.test(q)){splitItems(rest).forEach(function(it){var m=/^(.+?)\s*[:–-]\s+(.+)$/.exec(it);R.groups.push(m?{title:cap(m[1]),people:m[2]}:{title:cap(it),people:''})});return}
+    if(/must|shot|important|special|meaningful|don.t miss|surprise|detail/.test(q)&&!/time/.test(q)){splitItems(rest).forEach(function(it){R.shots.push({text:cap(it)})});return}
+    var timeQ=/time|timeline|running order|schedule|when|start|arriv|order of the day/.test(q);
+    var tl=[];
+    rest.forEach(function(l){var t=parseTime(l);if(t){var title=clean(t.rest.replace(/\b(at|from|approx(imately)?|around|about|until)\b\s*$/i,''));tl.push({time:t.time,title:title})}});
+    if(tl.length&&(timeQ||tl.length>1)){
+      var qt=cap(clean(clean(b.q).replace(/\?$/,'').replace(/^(what|when)\s+(time\s+)?(is|does|will|do|are)\s+(the\s+|your\s+|you\s+)?/i,'').replace(/\s*\b(start|begin|happen|be|planned|planning)s?\b\s*$/i,'')));
+      tl.forEach(function(x){R.timeline.push({time:x.time,title:cap(x.title||qt||'Timeline item')})});
+      var left=rest.filter(function(l){return !parseTime(l)});
+      if(left.length&&b.q)R.notes.push(clean(b.q)+' '+left.join(' '));
+      return;
+    }
+    if(!b.q&&rest.length===1&&rest[0].length<40)return;
+    if(rest.length&&!(phoneHit&&!rest.join('').trim())){
+      var ans=rest.join(' ');if(/^(n\/?a|none|no|tbc)$/i.test(ans.trim()))return;
+      R.notes.push(b.q?(b.q.replace(/^\d+[.)]\s*/,'')+'\n'+ans):ans);
+    }
+  });
+  var seen={};R.timeline=R.timeline.filter(function(x){var k=x.time+x.title.toLowerCase();if(seen[k])return false;seen[k]=1;return true}).sort(function(a,b){return toMin(a.time)-toMin(b.time)});
+  return R;
+}
+
+/* ---------- render ---------- */
 var app=document.getElementById('app');
-function bar(){return ''}
-function msg(){return ui.msg?'<div class="msg">'+esc(ui.msg)+' <button class="ghost small" data-act="dismiss">OK</button></div>':''}
+function msg(){return ui.msg?'<div class="msg">'+esc(ui.msg)+' <button class="ghost sm" data-act="dismiss">OK</button></div>':''}
+function back(label,act){return '<button class="ghost" data-act="'+(act||'home')+'" style="padding-left:0">‹ '+esc(label||'Weddings')+'</button>'}
 function render(){
-  var h='';
-  if(ui.view==='new')h=rNew();else if(ui.view==='wed'&&W())h=rWed();else if(ui.view==='backup')h=rBackup();else{ui.view='home';h=rHome()}
-  app.innerHTML=h+bar();
+  var h;
+  if(ui.view==='new')h=rNew();
+  else if(ui.view==='wed'&&W())h=rWed();
+  else if(ui.view==='import'&&W())h=rImport();
+  else if(ui.view==='backup')h=rBackup();
+  else if(ui.view==='venues')h=rVenues();
+  else if(ui.view==='venue'&&V(ui.venueId))h=rVenueEdit();
+  else if(ui.view==='mileage')h=rMileage();
+  else if(ui.view==='settings')h=rSettings();
+  else{ui.view='home';h=rHome()}
+  app.innerHTML=h;
 }
 function rHome(){
   var t=todayStr(),list=S.weddings.slice().sort(function(a,b){return (a.date||'9999').localeCompare(b.date||'9999')});
   var up=list.filter(function(w){return !w.date||w.date>=t}),past=list.filter(function(w){return w.date&&w.date<t}).reverse();
-  var h=msg()+'<div class="row between" style="margin-bottom:12px"><h1>Weddings</h1><button class="primary" data-act="new">+ Add</button></div>';
-  if(!list.length)h+='<div class="card empty"><h3>No weddings yet</h3><p>Add one and you’ll get a timeline, group list, shot list, kit check and light times for the venue.</p><button class="gold" data-act="new">Add your first wedding</button></div>';
+  var h=msg()+'<div class="row between" style="margin:4px 0 12px"><h1>Weddings</h1><button class="primary" data-act="new">+ Add</button></div>';
+  var due=[];S.weddings.forEach(function(w){w.after.forEach(function(x){if(!x.done&&w.date&&w.date<=t){var dd=addDays(w.date,+x.offset||0);if(dd<=addDays(t,3))due.push({w:w,x:x,d:dd})}})});
+  due.sort(function(a,b){return a.d.localeCompare(b.d)});
+  if(due.length)h+='<div class="card"><div class="row between"><b>After-wedding jobs due</b><span class="pill'+(due.some(function(o){return o.d<t})?' red':'')+'">'+due.length+'</span></div>'+due.slice(0,5).map(function(o){return '<div class="item tap" data-act="openafter" data-id="'+o.w.id+'"><div class="txt grow"><div>'+esc(o.x.text)+'</div><div class="small muted">'+esc(o.w.couple)+'</div></div><span class="pill'+(o.d<t?' red':'')+'">'+(o.d<t?'Overdue':o.d===t?'Today':shortDate(o.d))+'</span></div>'}).join('')+'</div>';
+  if(!list.length)h+='<div class="card empty"><h3>No weddings yet</h3><p>Add one to get a timeline, group list, shot list, kit check, weather and light for the venue.</p><button class="gold" data-act="new">Add your first wedding</button></div>';
   function card(w){
     var dd=daysUntil(w.date),badge=dd===0?'<span class="pill">Today</span>':dd!=null&&dd>0?'<span class="pill">'+(dd===1?'Tomorrow':'In '+dd+' days')+'</span>':'';
-    var tot=w.timeline.length+w.groups.length+w.shots.length,dn=w.timeline.filter(f).length+w.groups.filter(f).length+w.shots.filter(f).length;
-    return '<div class="card tap" data-act="open" data-id="'+w.id+'"><div class="row between"><h3>'+esc(w.couple)+'</h3>'+badge+'</div><div class="muted small">'+esc(niceDate(w.date))+(w.venue?' · '+esc(w.venue):'')+'</div>'+(dn?'<div class="prog"><i style="width:'+Math.round(dn/tot*100)+'%"></i></div>':'')+'</div>';
+    var tot=w.timeline.length+w.groups.length+w.shots.length,dn=w.timeline.filter(done).length+w.groups.filter(done).length+w.shots.filter(done).length;
+    return '<div class="card tap" data-act="open" data-id="'+w.id+'"><div class="row between"><h3>'+esc(w.couple)+'</h3>'+badge+'</div><div class="muted small">'+esc(niceDate(w.date))+(loc(w).name?' · '+esc(loc(w).name):'')+'</div>'+(dn?'<div class="prog"><i style="width:'+Math.round(dn/tot*100)+'%"></i></div>':'')+'</div>';
   }
-  function f(x){return x.done}
   if(up.length)h+=up.map(card).join('');
   if(past.length)h+='<h3 style="margin:18px 0 10px" class="muted">Past</h3>'+past.map(card).join('');
-  h+='<hr><button class="ghost full" data-act="backup">Backup and restore</button>';
+  h+='<hr><div class="menu"><button data-act="venues">Venues</button><button data-act="mileage">Mileage</button><button data-act="settings">Settings</button><button data-act="backup">Backup</button></div>';
+  return h;
+}
+function venueOptions(sel){
+  var h='';
+  if(S.venues.length)h+='<optgroup label="Your venues">'+S.venues.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).map(function(v){return '<option value="v:'+v.id+'"'+(sel==='v:'+v.id?' selected':'')+'>'+esc(v.name)+'</option>'}).join('')+'</optgroup>';
+  h+='<optgroup label="Areas">'+VENUES.map(function(v,i){return '<option value="a:'+i+'"'+(sel==='a:'+i?' selected':'')+'>'+esc(v[0])+'</option>'}).join('')+'</optgroup>';
   return h;
 }
 function rNew(){
-  var o='<option value="">Other / not listed</option>'+VENUES.map(function(v,i){return '<option value="'+i+'">'+esc(v[0])+'</option>'}).join('');
   var p=Object.keys(TPL).map(function(k){return '<option value="'+k+'"'+(k==='half'?' selected':'')+'>'+esc(TPL[k].label)+'</option>'}).join('');
-  return '<div class="row between" style="margin-bottom:12px"><h1>New wedding</h1><button class="ghost" data-act="home">Cancel</button></div>'+
+  return '<div class="row between" style="margin:4px 0 12px"><h1>New wedding</h1><button class="ghost" data-act="home">Cancel</button></div>'+
   '<form id="nf" class="card"><label class="f"><span>Couple</span><input name="couple" placeholder="e.g. Sam & Alex" required></label>'+
   '<label class="f"><span>Date</span><input type="date" name="date" required></label>'+
-  '<label class="f"><span>Area (for sunset and golden hour)</span><select name="venue">'+o+'</select></label>'+
-  '<label class="f"><span>Venue name</span><input name="venueName" placeholder="Leave blank to use the area"></label>'+
+  '<label class="f"><span>Venue or area</span><select name="where"><option value="">Not sure yet</option>'+venueOptions('')+'</select></label>'+
+  '<label class="f"><span>Venue name (if it’s not in your list)</span><input name="venueName" placeholder="Leave blank to use the choice above"></label>'+
   '<label class="f"><span>Ceremony time</span><input type="time" name="ceremony" value="13:00" required></label>'+
   '<label class="f"><span>Coverage</span><select name="pkg">'+p+'</select></label>'+
-  '<p class="muted small">The timeline is built around the ceremony time. You can change everything afterwards.</p>'+
+  '<p class="muted small">The timeline is built around the ceremony time. If you have the couple’s questionnaire, you can fill in from it next.</p>'+
   '<button class="primary full" type="submit">Create</button></form>';
 }
 function tabsHtml(w){
-  function c(a){return a.filter(function(x){return x.done}).length+'/'+a.length}
-  var T=[['day','Day',c(w.timeline)],['groups','Groups',c(w.groups)],['shots','Shots',c(w.shots)],['people','People',''],['kit','Kit',c(w.kit)],['notes','Notes','']];
-  return '<div class="tabs">'+T.map(function(t){return '<button class="tab'+(ui.tab===t[0]?' on':'')+'" data-act="tab" data-tab="'+t[0]+'">'+t[1]+(t[2]?'<span class="n">'+t[2]+'</span>':'')+'</button>'}).join('')+'</div>';
+  function c(a){return a.filter(done).length+'/'+a.length}
+  var t=todayStr(),late=w.date&&w.after.some(function(x){return !x.done&&addDays(w.date,+x.offset||0)<=t});
+  var T=[['day','Day',c(w.timeline)],['groups','Groups',c(w.groups)],['shots','Shots',c(w.shots)],['people','People',''],['venue','Venue',''],['kit','Kit',c(w.kit)],['after','After',c(w.after)],['notes','Notes','']];
+  return '<div class="tabs">'+T.map(function(x){return '<button class="tab'+(ui.tab===x[0]?' on':'')+'" data-act="tab" data-tab="'+x[0]+'">'+x[1]+(x[2]?'<span class="n">'+x[2]+'</span>':'')+(x[0]==='after'&&late?'<span class="dot"></span>':'')+'</button>'}).join('')+'</div>';
 }
 function rWed(){
-  var w=W(),dd=daysUntil(w.date);
-  var h=msg()+'<div class="row between" style="margin:4px 0 6px"><button class="ghost" data-act="home" style="padding-left:0">‹ Weddings</button><button class="'+(ui.edit?'primary':'')+'" data-act="edit">'+(ui.edit?'Done':'Edit')+'</button></div>';
-  h+='<h1>'+esc(w.couple)+'</h1><div class="muted" style="margin:2px 0 14px">'+esc(niceDate(w.date,true))+(w.venue?' · '+esc(w.venue):'')+(dd!=null&&dd>0?' · in '+dd+' day'+(dd===1?'':'s'):'')+'</div>';
+  var w=W(),dd=daysUntil(w.date),l=loc(w);
+  var noEdit=ui.tab==='venue'||ui.tab==='notes';
+  var h=msg()+'<div class="row between" style="margin:4px 0 6px">'+back()+(noEdit?'':'<button class="'+(ui.edit?'primary':'')+'" data-act="edit">'+(ui.edit?'Done':'Edit')+'</button>')+'</div>';
+  h+='<h1>'+esc(w.couple)+'</h1><div class="muted" style="margin:2px 0 14px">'+esc(niceDate(w.date,true))+(l.name?' · '+esc(l.name):'')+(dd!=null&&dd>0?' · in '+dd+' day'+(dd===1?'':'s'):'')+'</div>';
   h+=tabsHtml(w);
   if(ui.tab==='day')h+=rDay(w);
-  else if(ui.tab==='groups')h+=rList(w,'groups');
+  else if(ui.tab==='groups')h+=rGroupsTimer(w)+rList(w,'groups');
   else if(ui.tab==='shots')h+=rList(w,'shots');
   else if(ui.tab==='kit')h+=rList(w,'kit');
+  else if(ui.tab==='after')h+=rAfter(w);
   else if(ui.tab==='people')h+=rPeople(w);
+  else if(ui.tab==='venue')h+=rVenueTab(w);
   else h+=rNotes(w);
   return h;
-}
-function rLight(w){
-  var l=light(w);
-  if(!l)return '<div class="card light small">Pick an area under Notes › Wedding details to see sunset and golden hour.</div>';
-  return '<div class="card light"><div class="row between"><b>Light on the day</b><span class="small muted">'+esc(w.venue||'')+'</span></div><div class="grid"><div><b>'+l.golden+'</b><span>Golden hour starts</span></div><div><b>'+l.sunset+'</b><span>Sunset</span></div><div><b>'+l.blue+'</b><span>Blue hour ends</span></div></div><div class="small muted" style="margin-top:8px">Sunrise '+l.sunrise+'. Hills and mountains can block the sun well before these times, so plan portraits earlier.</div></div>';
 }
 function rNow(w){
   if(w.date!==todayStr()||!w.timeline.length)return '';
@@ -239,40 +400,154 @@ function rNow(w){
   else h+='<div style="margin-top:6px" class="muted">That’s the last item on the timeline.</div>';
   return h+'</div>';
 }
+function defaultSunTime(w){
+  for(var i=0;i<w.timeline.length;i++)if(/portrait/i.test(w.timeline[i].title))return w.timeline[i].time;
+  var l=light(w);return l&&l.goldenD?fmtT(l.goldenD):'15:00';
+}
+function compassSvg(az,alt,setAz,rot){
+  var r=58,c=70,rotate=rot||0;
+  function pt(a,rr){return [c+rr*Math.sin(a*RAD),c-rr*Math.cos(a*RAD)]}
+  var s=pt(az,r-6),ss=setAz!=null?pt(setAz,r+2):null,up=alt>0;
+  var h='<svg width="140" height="140" viewBox="0 0 140 140" aria-label="Sun direction"><g transform="rotate('+(-rotate)+' 70 70)">';
+  h+='<circle cx="70" cy="70" r="'+r+'" fill="#fff" stroke="#E6D6BA" stroke-width="2"/>';
+  ['N','E','S','W'].forEach(function(d,i){var p=pt(i*90,r-14);h+='<text x="'+p[0]+'" y="'+(p[1]+5)+'" text-anchor="middle" font-size="13" font-weight="600" fill="'+(d==='N'?'#B5523B':'#6E6A64')+'" transform="rotate('+rotate+' '+p[0]+' '+p[1]+')">'+d+'</text>'});
+  if(ss)h+='<circle cx="'+ss[0]+'" cy="'+ss[1]+'" r="4" fill="#B5523B" opacity=".8"/>';
+  h+='<line x1="70" y1="70" x2="'+s[0]+'" y2="'+s[1]+'" stroke="'+(up?'#A88241':'#9BA7B3')+'" stroke-width="3" stroke-linecap="round"/>';
+  h+='<circle cx="'+s[0]+'" cy="'+s[1]+'" r="9" fill="'+(up?'#E3B04B':'#9BA7B3')+'" stroke="#fff" stroke-width="2"/>';
+  h+='<circle cx="70" cy="70" r="4" fill="#1A1A1A"/></g></svg>';
+  return h;
+}
+function rLight(w){
+  var l=light(w),lc=loc(w);
+  if(!l)return '<div class="card light small">Choose a venue or area on the Venue tab to see the light, sun direction and weather.</div>';
+  var t=ui.sunT||defaultSunTime(w),d=at(w.date,t),p=d?sunPos(d,lc.lat,lc.lon):null,sp=sunPos(l.sunsetD,lc.lat,lc.lon);
+  var h='<div class="card light"><div class="row between"><b>Light</b><span class="small muted">'+esc(lc.name||'')+'</span></div><div class="grid3"><div><b>'+l.golden+'</b><span>Golden hour starts</span></div><div><b>'+l.sunset+'</b><span>Sunset</span></div><div><b>'+l.blue+'</b><span>Blue hour ends</span></div></div>';
+  if(p){
+    var desc=p.alt<=0?'The sun is down at '+t+'.':'At '+t+' the sun is in the <b>'+dirName(p.az)+'</b> ('+Math.round(p.az)+'°), '+Math.round(p.alt)+'° above the horizon'+(p.alt<10?', so it’s low: expect long shadows, and hills may block it.':p.alt<25?'.':', so it’s fairly high: look for shade or put it behind the couple.');
+    h+='<hr><div class="compass">'+compassSvg(p.az,p.alt,sp.az,ui.live&&ui.heading!=null?ui.heading:0)+'<div class="grow"><div class="small">'+desc+'</div><div class="small muted" style="margin-top:6px">Red dot: where it sets ('+dirName(sp.az)+').'+(ui.live?' Hold the phone flat; the dial turns to match.':'')+'</div></div></div>';
+    h+='<div class="row" style="margin-top:8px"><input type="time" value="'+esc(t)+'" data-sun="t" style="max-width:140px"><button class="sm'+(ui.live?' gold':'')+'" data-act="live">'+(ui.live?'Live compass on':'Live compass')+'</button></div>';
+  }
+  h+='<div class="small muted" style="margin-top:8px">Sunrise '+l.sunrise+'. Times are for open ground. Hills and buildings can block the sun much earlier.</div></div>';
+  return h;
+}
+var WX={0:'Clear',1:'Mostly clear',2:'Partly cloudy',3:'Cloudy',45:'Fog',48:'Fog',51:'Drizzle',53:'Drizzle',55:'Drizzle',56:'Freezing drizzle',57:'Freezing drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',66:'Freezing rain',67:'Freezing rain',71:'Light snow',73:'Snow',75:'Heavy snow',77:'Snow',80:'Showers',81:'Showers',82:'Heavy showers',85:'Snow showers',86:'Snow showers',95:'Thunder',96:'Thunder',99:'Thunder'};
+function rWeather(w){
+  var lc=loc(w),dd=daysUntil(w.date);
+  if(lc.lat==null||dd==null)return '';
+  if(dd<0)return '';
+  var h='<div class="card"><div class="row between"><b>Weather</b>'+(dd<=15?'<button class="sm" data-act="wx"'+(ui.wxBusy?' disabled':'')+'>'+(ui.wxBusy?'Updating…':'Update')+'</button>':'')+'</div>';
+  if(dd>15){h+='<div class="small muted" style="margin-top:4px">Forecasts start about two weeks out, from '+esc(niceDate(addDays(w.date,-15)))+'.</div>'}
+  else if(!w.weather||!w.weather.hours||!w.weather.hours.length){h+='<div class="small muted" style="margin-top:4px">Tap Update to get the forecast (needs signal). It’s kept for when you’re offline.</div>'}
+  else{
+    var first=w.timeline.length?toMin(w.timeline[0].time):600,last=w.timeline.length?toMin(w.timeline[w.timeline.length-1].time):1080;
+    var hrs=w.weather.hours.filter(function(x){var m=toMin(x.t.slice(11,16));return m>=first-60&&m<=last+60});
+    if(!hrs.length)hrs=w.weather.hours.filter(function(x){var m=toMin(x.t.slice(11,16));return m>=540&&m<=1260});
+    var maxP=0,wind=0;hrs.forEach(function(x){maxP=Math.max(maxP,x.pp||0);wind=Math.max(wind,x.gust||x.wind||0)});
+    h+='<div class="small" style="margin:4px 0 8px">'+(maxP>=60?'<span class="warn"><b>Rain likely</b></span> (up to '+maxP+'%) during coverage. Check the wet weather plan.':maxP>=30?'<b>Some chance of rain</b> (up to '+maxP+'%).':'<span class="ok"><b>Looks mostly dry</b></span> (rain chance under 30%).')+(wind>=30?' Gusts up to '+Math.round(wind)+' mph, so watch veils and hair.':'')+'</div>';
+    h+='<div class="wx">'+hrs.map(function(x){var m=toMin(x.t.slice(11,16)),inC=m>=first&&m<=last;return '<div class="h'+(inC?' in':'')+'"><div class="muted">'+x.t.slice(11,16)+'</div><b>'+Math.round(x.temp)+'°</b><div class="small">'+esc(WX[x.code]||'')+'</div><div class="rain">'+(x.pp!=null?x.pp+'%':'')+'</div><div class="small muted">'+Math.round(x.wind)+' mph</div></div>'}).join('')+'</div>';
+    var age=Math.round((Date.now()-w.weather.at)/3600000);
+    h+='<div class="small muted" style="margin-top:6px">Updated '+(age<1?'just now':age+' hour'+(age===1?'':'s')+' ago')+'. Gold boxes are during coverage. Forecasts more than 5 days out change a lot.</div>';
+  }
+  h+='<hr><label class="f" style="margin:0"><span>Wet weather plan</span><textarea data-w="wet" placeholder="Where to do portraits and groups if it rains, umbrellas, indoor spots…" style="min-height:70px">'+esc(w.wet||'')+'</textarea></label>';
+  return h+'</div>';
+}
+function fetchWeather(w){
+  var lc=loc(w);if(lc.lat==null||!w.date)return;
+  ui.wxBusy=true;render();
+  var url='https://api.open-meteo.com/v1/forecast?latitude='+lc.lat.toFixed(4)+'&longitude='+lc.lon.toFixed(4)+'&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m&wind_speed_unit=mph&timezone=Europe%2FLondon&start_date='+w.date+'&end_date='+w.date;
+  fetch(url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(function(j){
+    var H=j.hourly,hours=H.time.map(function(t,i){return {t:t,temp:H.temperature_2m[i],pp:H.precipitation_probability?H.precipitation_probability[i]:null,code:H.weather_code[i],wind:H.wind_speed_10m[i],gust:H.wind_gusts_10m?H.wind_gusts_10m[i]:null}});
+    w.weather={at:Date.now(),hours:hours};ui.wxBusy=false;persist();render();
+  }).catch(function(e){ui.wxBusy=false;ui.msg='Couldn’t get the forecast. Check you have signal and try again.';render()});
+}
 function rAlerts(w){
-  var a=w.alerts||{on:false,mins:10,golden:true};
+  var a=w.alerts;
   if(!LN)return '';
   var opts=[5,10,15,20,30].map(function(m){return '<option value="'+m+'"'+(+a.mins===m?' selected':'')+'>'+m+' min before</option>'}).join('');
   return '<div class="card"><div class="row between"><div><b>Alerts</b><div class="small muted">'+(a.on?'Your phone buzzes before each item':'Off')+'</div></div><button class="'+(a.on?'gold':'')+'" data-act="alerts">'+(a.on?'On':'Turn on')+'</button></div>'+
-  (a.on?'<div class="three" style="margin-top:10px"><select data-al="mins">'+opts+'</select><button data-act="golden" class="'+(a.golden?'gold':'')+'">Golden hour '+(a.golden?'\u2713':'')+'</button></div><button class="ghost full small" data-act="testalert" style="margin-top:6px">Send a test alert in 5 seconds</button>':'')+'</div>';
+  (a.on?'<div class="three" style="margin-top:10px"><select data-al="mins">'+opts+'</select><button data-act="golden" class="'+(a.golden?'gold':'')+'">Golden hour'+(a.golden?' ✓':'')+'</button></div><div class="small muted" style="margin-top:6px">After-wedding jobs remind you at 9am on the day they’re due.</div><button class="ghost full sm" data-act="testalert" style="margin-top:4px">Send a test alert in 5 seconds</button>':'')+'</div>';
 }
 function rDay(w){
-  var h=rNow(w)+rLight(w)+rAlerts(w);
+  var h=rNow(w);
   if(ui.edit){
     h+='<div class="card"><h3 style="margin-bottom:6px">Timeline</h3>'+w.timeline.map(function(x){return '<div class="edit-row"><div class="two"><input type="time" value="'+esc(x.time)+'" data-k="timeline" data-i="'+x.id+'" data-f="time"><input value="'+esc(x.title)+'" placeholder="What’s happening" data-k="timeline" data-i="'+x.id+'" data-f="title"><button class="x" data-act="del" data-k="timeline" data-i="'+x.id+'" aria-label="Remove">✕</button></div><input value="'+esc(x.note)+'" placeholder="Note (optional)" data-k="timeline" data-i="'+x.id+'" data-f="note"></div>'}).join('')+
     '<button class="full" data-act="add" data-k="timeline" style="margin-top:8px">+ Add item</button>'+
     '<hr><div class="small muted" style="margin-bottom:6px">Running late? Shift everything still to come:</div><div class="row wrap"><button data-act="shift" data-m="-15">−15 min</button><button data-act="shift" data-m="-5">−5</button><button data-act="shift" data-m="5">+5</button><button data-act="shift" data-m="15">+15 min</button></div><div class="small muted" style="margin-top:6px">On the wedding day this only moves items that haven’t started yet.</div></div>';
-  }else{
-    var n=nowMin(),isToday=w.date===todayStr(),curId=null;
-    if(isToday)w.timeline.forEach(function(x){if(toMin(x.time)<=n)curId=x.id});
-    h+='<div class="card">'+(w.timeline.length?w.timeline.map(function(x){return '<div class="item'+(x.done?' done':'')+(x.id===curId?' cur':'')+'"><button class="chk'+(x.done?' on':'')+'" data-act="tick" data-k="timeline" data-i="'+x.id+'" aria-label="Done"></button><div class="tm">'+esc(x.time)+'</div><div class="txt grow"><div>'+esc(x.title)+'</div>'+(x.note?'<div class="small muted">'+esc(x.note)+'</div>':'')+'</div></div>'}).join(''):'<div class="empty">No timeline yet. Tap Edit to add one.</div>')+'</div>';
-    h+='<button class="full" data-act="copytl">Copy timeline to send to the couple</button>';
-    if(ui.copyText!=null)h+='<p class="small muted">Couldn’t copy automatically, so select the text below and copy it:</p><pre class="copy">'+esc(ui.copyText)+'</pre>';
+    return h;
   }
+  var n=nowMin(),isToday=w.date===todayStr(),curId=null;
+  if(isToday)w.timeline.forEach(function(x){if(toMin(x.time)<=n)curId=x.id});
+  h+='<div class="card">'+(w.timeline.length?w.timeline.map(function(x){return '<div class="item'+(x.done?' done':'')+(x.id===curId?' cur':'')+'"><button class="chk'+(x.done?' on':'')+'" data-act="tick" data-k="timeline" data-i="'+x.id+'" aria-label="Done"></button><div class="tm">'+esc(x.time)+'</div><div class="txt grow"><div>'+esc(x.title)+'</div>'+(x.note?'<div class="small muted">'+esc(x.note)+'</div>':'')+'</div></div>'}).join(''):'<div class="empty">No timeline yet. Tap Edit to add one.</div>')+'</div>';
+  h+=rLight(w)+rWeather(w)+rAlerts(w);
+  h+='<div class="three"><button data-act="sharetl">Share timeline</button><button data-act="tlimg">Timeline image</button></div>';
+  if(ui.img)h+='<div class="card" style="margin-top:12px"><p class="small muted" style="margin-top:0">Press and hold the image to save it, or use Share.</p><img class="preview" src="'+ui.img+'" alt="Timeline image"></div>';
+  if(ui.copyText!=null)h+='<p class="small muted">Couldn’t copy automatically, so select the text below and copy it:</p><pre class="copy">'+esc(ui.copyText)+'</pre>';
   return h;
+}
+function timelineText(w){
+  var l=light(w),lc=loc(w);
+  return w.couple+' – '+niceDate(w.date,true)+(lc.name?'\n'+lc.name:'')+'\n\n'+w.timeline.map(function(x){return x.time+'  '+x.title+(x.note?' ('+x.note+')':'')}).join('\n')+(l?'\n\nGolden hour from '+l.golden+', sunset '+l.sunset:'');
+}
+function timelineImage(w){
+  var l=light(w),lc=loc(w),items=w.timeline,Wd=1080,pad0=80,rowH=78;
+  var Hh=pad0*2+230+items.length*rowH+(l?110:0);
+  var c=document.createElement('canvas');c.width=Wd;c.height=Hh;var g=c.getContext('2d');
+  g.fillStyle='#FBF7F1';g.fillRect(0,0,Wd,Hh);
+  var serif='"Cormorant Garamond", Georgia, serif',sans='Jost, system-ui, sans-serif';
+  g.fillStyle='#1A1A1A';g.font='600 76px '+serif;g.fillText(w.couple,pad0,pad0+70);
+  g.fillStyle='#6E6A64';g.font='400 34px '+sans;g.fillText(niceDate(w.date,true)+(lc.name?'  ·  '+lc.name:''),pad0,pad0+130);
+  g.fillStyle='#A88241';g.fillRect(pad0,pad0+170,120,4);
+  var y=pad0+240;
+  items.forEach(function(x){
+    g.fillStyle='#1A1A1A';g.font='600 38px '+sans;g.fillText(x.time,pad0,y);
+    g.font='400 38px '+sans;var tx=x.title;while(g.measureText(tx).width>Wd-pad0*2-170&&tx.length>4)tx=tx.slice(0,-2);if(tx!==x.title)tx=tx.replace(/\s*\S?$/,'')+'…';
+    g.fillText(tx,pad0+170,y);
+    g.strokeStyle='#E7E0D5';g.lineWidth=2;g.beginPath();g.moveTo(pad0,y+28);g.lineTo(Wd-pad0,y+28);g.stroke();
+    y+=rowH;
+  });
+  if(l){g.fillStyle='#F3EBDD';g.fillRect(pad0,y,Wd-pad0*2,80);g.fillStyle='#7A5B25';g.font='500 34px '+sans;g.fillText('Golden hour from '+l.golden+'  ·  Sunset '+l.sunset,pad0+30,y+52)}
+  return c.toDataURL('image/png');
+}
+function rGroupsTimer(w){
+  if(ui.edit)return '';
+  var t=w.groupTimer||{},tgt=+S.settings.groupTarget||20;
+  var el=t.start?((t.end||Date.now())-t.start)/1000:0,dn=w.groups.filter(done).length;
+  var mm=Math.floor(el/60),ss=Math.floor(el%60),over=el>tgt*60;
+  var h='<div class="card"><div class="row between"><div><div class="small muted">Group photos timer · target '+tgt+' min</div><div class="timer'+(over?' warn':'')+'" id="gtimer">'+mm+':'+pad(ss)+'</div>'+(dn&&el?'<div class="small muted">About '+Math.round(el/dn)+' s per group · '+(w.groups.length-dn)+' to go</div>':'')+'</div>';
+  if(!t.start)h+='<button class="gold" data-act="gstart">Start</button>';
+  else if(!t.end)h+='<button data-act="gstop">Stop</button>';
+  else h+='<button class="ghost" data-act="greset">Reset</button>';
+  return h+'</div></div>';
 }
 function rList(w,k){
   var items=w[k],isG=k==='groups';
   var title={groups:'Family groups',shots:'Must-have shots',kit:'Kit check'}[k];
   var tip={groups:'Keep it to 8 or so. Read names out from here and tick each one off as you go.',shots:'Tick as you get them. Glance here before the coverage ends.',kit:'Run through this the night before.'}[k];
-  var h='<div class="card"><div class="row between"><h3>'+title+'</h3><span class="small muted">'+items.filter(function(x){return x.done}).length+' of '+items.length+'</span></div><div class="small muted" style="margin:4px 0 8px">'+tip+'</div>';
+  var h='<div class="card"><div class="row between"><h3>'+title+'</h3><span class="small muted">'+items.filter(done).length+' of '+items.length+'</span></div><div class="small muted" style="margin:4px 0 8px">'+tip+'</div>';
   if(ui.edit){
     h+=items.map(function(x){return '<div class="edit-row"><div class="row"><input class="grow" value="'+esc(isG?x.title:x.text)+'" data-k="'+k+'" data-i="'+x.id+'" data-f="'+(isG?'title':'text')+'"><button class="x" data-act="del" data-k="'+k+'" data-i="'+x.id+'" aria-label="Remove">✕</button></div>'+(isG?'<input value="'+esc(x.people)+'" placeholder="Names (e.g. Mum Sue, Dad Gareth, Nain)" data-k="groups" data-i="'+x.id+'" data-f="people">':'')+'</div>'}).join('');
     h+='<button class="full" data-act="add" data-k="'+k+'" style="margin-top:8px">+ Add</button>';
     if(k!=='kit')h+='<div class="small muted" style="margin-top:10px">Use ↑ ↓ to reorder:</div>'+items.map(function(x,i){return '<div class="row between small" style="padding:4px 0"><span class="grow">'+esc(isG?x.title:x.text)+'</span><button class="ghost" data-act="mv" data-k="'+k+'" data-i="'+x.id+'" data-d="-1"'+(i===0?' disabled':'')+'>↑</button><button class="ghost" data-act="mv" data-k="'+k+'" data-i="'+x.id+'" data-d="1"'+(i===items.length-1?' disabled':'')+'>↓</button></div>'}).join('');
   }else{
     h+=items.length?items.map(function(x,i){return '<div class="item'+(x.done?' done':'')+'"><button class="chk'+(x.done?' on':'')+'" data-act="tick" data-k="'+k+'" data-i="'+x.id+'" aria-label="Done"></button>'+(isG?'<div class="tm">'+(i+1)+'</div>':'')+'<div class="txt grow"><div>'+esc(isG?x.title:x.text)+'</div>'+(isG&&x.people?'<div class="small muted">'+esc(x.people)+'</div>':'')+'</div></div>'}).join(''):'<div class="empty">Nothing here yet. Tap Edit to add.</div>';
-    if(items.some(function(x){return x.done}))h+='<button class="ghost full" data-act="reset" data-k="'+k+'">Untick all</button>';
+    if(items.some(done))h+='<button class="ghost full" data-act="reset" data-k="'+k+'">Untick all</button>';
+  }
+  return h+'</div>';
+}
+function rAfter(w){
+  var t=todayStr();
+  var h='<div class="card"><div class="row between"><h3>After the wedding</h3><span class="small muted">'+w.after.filter(done).length+' of '+w.after.length+'</span></div><div class="small muted" style="margin:4px 0 8px">Due dates count from the wedding day. Gallery delivery is set to '+(+S.settings.deliveryDays)+' days in Settings; match it to your contract.</div>';
+  if(ui.edit){
+    h+=w.after.map(function(x){return '<div class="edit-row"><div class="row"><input class="grow" value="'+esc(x.text)+'" data-k="after" data-i="'+x.id+'" data-f="text"><button class="x" data-act="del" data-k="after" data-i="'+x.id+'" aria-label="Remove">✕</button></div><label class="row small muted">Days after the wedding <input type="number" inputmode="numeric" min="0" value="'+esc(x.offset)+'" data-k="after" data-i="'+x.id+'" data-f="offset" style="max-width:90px"></label></div>'}).join('');
+    h+='<button class="full" data-act="add" data-k="after" style="margin-top:8px">+ Add</button>';
+  }else{
+    var list=w.after.slice().sort(function(a,b){return (+a.offset)-(+b.offset)});
+    h+=list.map(function(x){
+      var due=w.date?addDays(w.date,+x.offset||0):null,cls='',lab=due?shortDate(due):'';
+      if(due&&!x.done){if(due<t){cls=' red';lab='Overdue · '+lab}else if(due===t){lab='Today'}}
+      if(x.done){cls=' green';lab='Done'}
+      return '<div class="item'+(x.done?' done':'')+'"><button class="chk'+(x.done?' on':'')+'" data-act="tick" data-k="after" data-i="'+x.id+'" aria-label="Done"></button><div class="txt grow"><div>'+esc(x.text)+'</div></div><span class="pill'+cls+'">'+esc(lab)+'</span></div>';
+    }).join('');
   }
   return h+'</div>';
 }
@@ -283,54 +558,199 @@ function rPeople(w){
   }else{
     h+=w.contacts.length?w.contacts.map(function(x){return '<div class="item"><div class="txt grow"><div class="small muted">'+esc(x.role)+'</div><div>'+esc(x.name||'—')+'</div></div>'+(x.phone?'<a class="tel" href="tel:'+esc(x.phone.replace(/[^\d+]/g,''))+'">'+esc(x.phone)+'</a>':'')+'</div>'}).join(''):'<div class="empty">No contacts yet.</div>';
   }
-  return h+'</div>';
+  h+='</div>';
+  if(!ui.edit)h+='<button class="full" data-act="import">Fill in from the questionnaire</button>';
+  return h;
+}
+function venueFields(v,attr){
+  function f(k,label,ph,ta){return '<label class="f"><span>'+label+'</span>'+(ta?'<textarea '+attr+'="'+k+'" placeholder="'+esc(ph)+'" style="min-height:70px">'+esc(v[k]||'')+'</textarea>':'<input '+attr+'="'+k+'" value="'+esc(v[k]==null?'':v[k])+'" placeholder="'+esc(ph)+'">')+'</label>'}
+  return f('name','Venue name','')+
+  '<div class="three"><label class="f"><span>Latitude</span><input inputmode="decimal" '+attr+'="lat" value="'+(v.lat==null?'':v.lat)+'"></label><label class="f"><span>Longitude</span><input inputmode="decimal" '+attr+'="lon" value="'+(v.lon==null?'':v.lon)+'"></label></div><div class="small muted" style="margin:-6px 0 12px">For the exact spot, press and hold it in Google Maps, then copy the two numbers here.</div>'+
+  f('parking','Parking','Where to park, any passes or costs',true)+f('meet','Where to go on arrival','Entrance, who to ask for',true)+f('spots','Best portrait spots','Spots, and the time of day they work best',true)+f('wet','Wet weather spots','Indoor or covered places for portraits and groups',true)+f('notes','Venue rules and notes','Flash, confetti, no-go areas…',true);
+}
+function rVenueTab(w){
+  var v=w.venueId&&V(w.venueId),h='';
+  var mi=milesOneWay(w);
+  if(v){
+    h+='<div class="card"><div class="row between"><h3>'+esc(v.name)+'</h3><button class="sm" data-act="editvenue" data-v="'+v.id+'">Edit venue</button></div>';
+    [['Parking','parking'],['On arrival','meet'],['Best portrait spots','spots'],['Wet weather spots','wet'],['Rules and notes','notes']].forEach(function(r){if(v[r[1]])h+='<div class="item"><div class="txt grow"><div class="small muted">'+r[0]+'</div><div style="white-space:pre-wrap">'+esc(v[r[1]])+'</div></div></div>'});
+    if(!v.parking&&!v.meet&&!v.spots&&!v.wet&&!v.notes)h+='<div class="small muted" style="margin-top:6px">No details saved yet. Tap Edit venue to add parking, portrait spots and wet weather spots. They’ll show for every wedding here.</div>';
+    h+='</div>';
+  }
+  h+='<div class="card"><h3 style="margin-bottom:10px">'+(v?'Change venue':'Venue')+'</h3><label class="f"><span>Choose from your venues or an area</span><select data-w="where"><option value="">'+(v?'Keep '+esc(v.name):'Choose…')+'</option>'+venueOptions('')+'</select></label>';
+  if(!v){
+    h+='<label class="f"><span>Venue name</span><input value="'+esc(w.venue)+'" data-w="venue"></label><div class="three"><label class="f"><span>Latitude</span><input inputmode="decimal" value="'+(w.lat==null?'':w.lat)+'" data-w="lat"></label><label class="f"><span>Longitude</span><input inputmode="decimal" value="'+(w.lon==null?'':w.lon)+'" data-w="lon"></label></div><div class="small muted" style="margin:-6px 0 12px">For the exact spot, press and hold it in Google Maps, then copy the two numbers here.</div>';
+    h+='<button class="full" data-act="savevenue">Save as one of your venues</button><div class="small muted" style="margin-top:6px">Saved venues keep parking, portrait spots and wet weather spots for next time.</div>';
+  }else h+='<button class="ghost full" data-act="unlink">Use a one-off location instead</button>';
+  h+='</div>';
+  if(mi){
+    var ch=travelCharge(mi.m),s=S.settings;
+    h+='<div class="card"><h3 style="margin-bottom:6px">Travel</h3><div>'+(mi.est?'About ':'')+'<b>'+mi.m+' miles</b> each way from '+esc(s.baseName)+(mi.est?' <span class="small muted">(estimate)</span>':'')+'</div><div style="margin-top:4px">Travel charge: <b>'+(ch?money(ch):'none')+'</b> <span class="small muted">('+s.freeMiles+' miles free, then '+money(s.rate)+' a mile each way)</span></div><div class="small muted" style="margin-top:4px">Business mileage: '+(mi.m*2)+' miles return = '+money(mi.m*2*s.hmrc)+' at HMRC’s '+Math.round(s.hmrc*100)+'p a mile.</div>'+
+    '<label class="f" style="margin:10px 0 0"><span>Actual miles each way (overrides the estimate)</span><input type="number" inputmode="decimal" value="'+(w.miles==null?'':esc(w.miles))+'" data-w="miles" placeholder="'+(mi.est?mi.m:'')+'"></label></div>';
+  }
+  return h;
 }
 function rNotes(w){
-  var o='<option value="">Keep current'+(w.lat!=null?'':' (none set)')+'</option>'+VENUES.map(function(v,i){return '<option value="'+i+'">'+esc(v[0])+'</option>'}).join('');
-  var h='<div class="card"><h3 style="margin-bottom:8px">Notes</h3><textarea data-w="notes" placeholder="Venue rules, parking, confetti, flash restrictions, anything else…">'+esc(w.notes)+'</textarea></div>';
-  h+='<div class="card"><h3 style="margin-bottom:10px">Wedding details</h3><label class="f"><span>Couple</span><input value="'+esc(w.couple)+'" data-w="couple"></label><label class="f"><span>Date</span><input type="date" value="'+esc(w.date)+'" data-w="date"></label><label class="f"><span>Venue name</span><input value="'+esc(w.venue)+'" data-w="venue"></label><label class="f"><span>Area for light times</span><select data-w="area">'+o+'</select></label>'+
-  '<div class="three"><label class="f"><span>Latitude</span><input inputmode="decimal" value="'+(w.lat==null?'':w.lat)+'" data-w="lat"></label><label class="f"><span>Longitude</span><input inputmode="decimal" value="'+(w.lon==null?'':w.lon)+'" data-w="lon"></label></div><div class="small muted">For an exact venue, long-press it in Google Maps and copy the two numbers here.</div></div>';
+  var h='<div class="card"><h3 style="margin-bottom:8px">Notes</h3><textarea data-w="notes" placeholder="Anything else for this wedding…" style="min-height:160px">'+esc(w.notes)+'</textarea></div>';
+  h+='<button class="full" data-act="import" style="margin-bottom:12px">Fill in from the questionnaire</button>';
+  h+='<div class="card"><h3 style="margin-bottom:10px">Wedding details</h3><label class="f"><span>Couple</span><input value="'+esc(w.couple)+'" data-w="couple"></label><label class="f"><span>Date</span><input type="date" value="'+esc(w.date)+'" data-w="date"></label><div class="small muted">Change the venue on the Venue tab.</div></div>';
   h+='<button class="'+(ui.arm==='delw'?'armed':'danger')+' full" data-act="delw">'+(ui.arm==='delw'?'Tap again to delete this wedding':'Delete this wedding')+'</button>';
   return h;
 }
+function rImport(){
+  var w=W(),h='<div class="row between" style="margin:4px 0 6px">'+back(w.couple,'backwed')+'</div><h1>Fill in from questionnaire</h1>';
+  if(!ui.imp){
+    h+=msg()+'<p class="small muted">In Pixieset, open the couple’s answers, select all the text and copy it. Then paste it here. You’ll see what was found before anything is added.</p><textarea id="qtext" style="min-height:220px" placeholder="Paste the questionnaire answers here"></textarea><button class="primary full" data-act="parse" style="margin-top:10px">Read answers</button>';
+    return h;
+  }
+  var R=ui.imp,n=0;
+  function sec(key,title,fmt,replaceLabel){
+    if(!R[key].length)return '';
+    var s='<div class="card"><div class="row between"><h3>'+title+'</h3><span class="small muted">'+R[key].length+'</span></div>';
+    if(replaceLabel)s+='<label class="row small" style="margin:6px 0"><input type="checkbox" data-rep="'+key+'" style="width:auto;min-height:0"'+(R['rep_'+key]?' checked':'')+'> '+replaceLabel+'</label>';
+    s+=R[key].map(function(x,i){n++;return '<div class="sel"><input type="checkbox" data-pick="'+key+'" data-ix="'+i+'" style="width:auto;min-height:0;margin-top:4px"'+(x.off?'':' checked')+'><div class="grow">'+fmt(x)+'</div></div>'}).join('');
+    return s+'</div>';
+  }
+  h+='<p class="small muted">Untick anything that’s wrong. You can edit everything afterwards.</p>';
+  h+=sec('contacts','Contacts',function(x){return '<div class="small muted">'+esc(x.role)+'</div>'+esc(x.name||'—')+' · '+esc(x.phone)});
+  h+=sec('timeline','Timeline',function(x){return '<b>'+esc(x.time)+'</b> '+esc(x.title)},'Replace the template timeline');
+  h+=sec('groups','Family groups',function(x){return esc(x.title)+(x.people?'<div class="small muted">'+esc(x.people)+'</div>':'')},'Replace the template groups');
+  h+=sec('shots','Must-have shots',function(x){return esc(x.text)});
+  h+=sec('notes','Notes',function(x){return '<div style="white-space:pre-wrap" class="small">'+esc(x.text)+'</div>'});
+  if(!n)h+='<div class="card empty">Nothing recognisable was found. Try copying the whole page of answers, including the questions.</div>';
+  h+='<div class="three"><button data-act="impback">Back</button><button class="primary" data-act="impadd"'+(n?'':' disabled')+'>Add selected</button></div>';
+  return h;
+}
 function rBackup(){
-  return '<div class="row between" style="margin-bottom:12px"><h1>Backup</h1><button class="ghost" data-act="home">Done</button></div>'+msg()+
-  '<div class="card"><h3>Copy a backup</h3><p class="small muted">Copies every wedding as text. Paste it into an email to yourself now and then, so nothing is lost if you change phones.</p><button class="full" data-act="copyall">Copy all data</button>'+(ui.copyText!=null?'<pre class="copy">'+esc(ui.copyText)+'</pre>':'')+'</div>'+
-  '<div class="card"><h3>Restore</h3><p class="small muted">Paste a backup here. It replaces everything currently in the app.</p><textarea id="imp" placeholder="Paste backup text"></textarea><button class="'+(ui.arm==='imp'?'armed':'')+' full" data-act="imp" style="margin-top:8px">'+(ui.arm==='imp'?'Tap again to replace everything':'Restore from backup')+'</button></div>';
+  return '<div class="row between" style="margin:4px 0 12px"><h1>Backup</h1><button class="ghost" data-act="home">Done</button></div>'+msg()+
+  '<div class="card"><h3>Save a backup</h3><p class="small muted">Saves every wedding, venue and setting as a file. Send it to your email or Google Drive now and then, so nothing is lost if you change phones.</p><button class="full gold" data-act="sharebackup">Share backup file</button><button class="ghost full sm" data-act="copyall" style="margin-top:6px">Or copy it as text</button>'+(ui.copyText!=null?'<pre class="copy">'+esc(ui.copyText)+'</pre>':'')+'</div>'+
+  '<div class="card"><h3>Restore</h3><p class="small muted">Open the backup file, copy all its text and paste it here. It replaces everything currently in the app.</p><textarea id="imp" placeholder="Paste backup text"></textarea><button class="'+(ui.arm==='imp'?'armed':'')+' full" data-act="imp" style="margin-top:8px">'+(ui.arm==='imp'?'Tap again to replace everything':'Restore from backup')+'</button></div>';
+}
+function rVenues(){
+  var h='<div class="row between" style="margin:4px 0 12px"><h1>Venues</h1><button class="primary" data-act="newvenue">+ Add</button></div>'+msg();
+  if(!S.venues.length)return h+'<div class="card empty"><p>Save the places you shoot often, with parking, portrait spots and wet weather spots. Pick them when you add a wedding.</p><button class="gold" data-act="newvenue">Add a venue</button></div><button class="ghost full" data-act="home">‹ Back</button>';
+  h+=S.venues.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).map(function(v){
+    var c=S.weddings.filter(function(w){return w.venueId===v.id}).length;
+    return '<div class="card tap" data-act="editvenue" data-v="'+v.id+'"><div class="row between"><h3>'+esc(v.name||'Unnamed')+'</h3><span class="small muted">'+c+' wedding'+(c===1?'':'s')+'</span></div>'+(v.spots?'<div class="small muted" style="margin-top:4px">'+esc(v.spots.slice(0,90))+'</div>':'')+'</div>';
+  }).join('');
+  return h+'<button class="ghost full" data-act="home">‹ Back</button>';
+}
+function rVenueEdit(){
+  var v=V(ui.venueId);
+  var h='<div class="row between" style="margin:4px 0 6px">'+back(ui.retWed?'Back to wedding':'Venues',ui.retWed?'backwed':'venues')+'</div><h1 style="margin-bottom:12px">'+esc(v.name||'New venue')+'</h1>';
+  h+='<div class="card"><label class="f"><span>Start from an area (optional)</span><select data-vf="area"><option value="">—</option>'+VENUES.map(function(x,i){return '<option value="'+i+'">'+esc(x[0])+'</option>'}).join('')+'</select></label>'+venueFields(v,'data-vf')+'</div>';
+  var l=v.lat!=null?light({date:todayStr(),lat:v.lat,lon:v.lon}):null;
+  if(l)h+='<div class="small muted" style="margin:-4px 0 12px">Today here: golden hour from '+l.golden+', sunset '+l.sunset+'.</div>';
+  h+='<button class="'+(ui.arm==='delv'?'armed':'danger')+' full" data-act="delv">'+(ui.arm==='delv'?'Tap again to delete this venue':'Delete venue')+'</button>';
+  return h;
+}
+function taxYear(d){var y=+d.slice(0,4),md=d.slice(5);return md>='04-06'?y:y-1}
+function rMileage(){
+  var s=S.settings,cur=taxYear(todayStr()),yr=ui.year==null?cur:ui.year;
+  var rows=S.weddings.filter(function(w){return w.date&&taxYear(w.date)===yr&&w.date<=todayStr()}).sort(function(a,b){return a.date.localeCompare(b.date)});
+  var tot=0,ok=true;
+  var body=rows.map(function(w){var m=milesOneWay(w);if(!m){ok=false;return '<tr><td>'+esc(shortDate(w.date))+'</td><td>'+esc(w.couple)+'</td><td class="n">—</td></tr>'}tot+=m.m*2;return '<tr><td>'+esc(shortDate(w.date))+'</td><td>'+esc(w.couple)+(m.est?' <span class="small muted">est.</span>':'')+'</td><td class="n">'+(m.m*2)+'</td></tr>'}).join('');
+  var h='<div class="row between" style="margin:4px 0 12px"><h1>Mileage</h1><button class="ghost" data-act="home">Done</button></div>'+msg();
+  h+='<div class="row" style="margin-bottom:12px"><button class="sm" data-act="year" data-d="-1">‹</button><b class="grow" style="text-align:center">Tax year '+yr+'–'+String(yr+1).slice(2)+'</b><button class="sm" data-act="year" data-d="1"'+(yr>=cur?' disabled':'')+'>›</button></div>';
+  h+='<div class="card"><div class="grid3" style="margin:0"><div><b>'+rows.length+'</b><span>Weddings</span></div><div><b>'+tot+'</b><span>Miles (return)</span></div><div><b>'+money(tot*s.hmrc)+'</b><span>At '+Math.round(s.hmrc*100)+'p a mile</span></div></div></div>';
+  h+='<div class="card">'+(rows.length?'<table class="log"><tr><th>Date</th><th>Wedding</th><th class="n">Miles</th></tr>'+body+'</table>':'<div class="empty">No weddings in this tax year yet.</div>')+'</div>';
+  h+='<p class="small muted">Return trips from '+esc(s.baseName)+'. "est." means the miles are estimated from the map; type the real figure on the wedding’s Venue tab for your records. This only covers weddings in the app, so add any other business journeys to your own records. HMRC’s 45p rate is for the first 10,000 business miles in a year.</p>';
+  if(rows.length)h+='<button class="full" data-act="sharemiles" data-y="'+yr+'">Share this list</button>';
+  return h;
+}
+function rSettings(){
+  var s=S.settings;
+  function f(k,label,type,step){return '<label class="f"><span>'+label+'</span><input '+(type?'type="'+type+'" inputmode="decimal"':'')+(step?' step="'+step+'"':'')+' value="'+esc(s[k])+'" data-set="'+k+'"></label>'}
+  return '<div class="row between" style="margin:4px 0 12px"><h1>Settings</h1><button class="ghost" data-act="home">Done</button></div>'+msg()+
+  '<div class="card"><h3 style="margin-bottom:10px">Where you travel from</h3>'+f('baseName','Name')+'<div class="three">'+f('baseLat','Latitude','number','any')+f('baseLon','Longitude','number','any')+'</div></div>'+
+  '<div class="card"><h3 style="margin-bottom:10px">Travel</h3><div class="three">'+f('freeMiles','Free miles each way','number','1')+f('rate','Charge per mile (£)','number','0.01')+'</div><div class="three">'+f('hmrc','HMRC rate per mile (£)','number','0.01')+f('roadFactor','Road estimate factor','number','0.05')+'</div><div class="small muted">Distances are estimated as a straight line times the road factor. 1.3 suits most North Wales roads; type real miles on a wedding to override.</div></div>'+
+  '<div class="card"><h3 style="margin-bottom:10px">Workflow</h3><div class="three">'+f('deliveryDays','Gallery delivery (days)','number','1')+f('groupTarget','Group photos target (min)','number','1')+'</div><div class="small muted">Gallery delivery sets the after-wedding due dates for new weddings.</div></div>';
 }
 
 /* ---------- events ---------- */
 function find(w,k,id){var a=w[k];for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null}
-function copy(text){
-  ui.copyText=null;
-  try{navigator.clipboard.writeText(text).then(function(){ui.msg='Copied.';render()},function(){ui.copyText=text;render()})}catch(e){ui.copyText=text;render()}
+function openWed(id,tab){ui.view='wed';ui.id=id;ui.tab=tab||'day';ui.edit=false;ui.copyText=null;ui.img=null;ui.sunT=null;ui.live=false;stopLive();window.scrollTo(0,0);render()}
+function setWhere(w,val){
+  if(!val)return;
+  if(val.indexOf('v:')===0){var v=V(val.slice(2));if(v){w.venueId=v.id;w.venue=v.name;w.lat=v.lat;w.lon=v.lon}}
+  else if(val.indexOf('a:')===0){var a=VENUES[+val.slice(2)];if(a){w.venueId=null;w.lat=a[1];w.lon=a[2];w.venue=a[0]}}
+  w.weather=null;
 }
+var liveH=null;
+function onOrient(e){var hd=e.webkitCompassHeading!=null?e.webkitCompassHeading:(e.absolute||e.type==='deviceorientationabsolute')&&e.alpha!=null?(360-e.alpha)%360:null;if(hd==null)return;ui.heading=hd;var now=Date.now();if(!liveH||now-liveH>150){liveH=now;var sv=app.querySelector('.compass svg');if(sv){var w=W();if(w){var tmp=document.createElement('div');var lc=loc(w),t=ui.sunT||defaultSunTime(w),d=at(w.date,t),l=light(w);if(d&&l){tmp.innerHTML=compassSvg(sunPos(d,lc.lat,lc.lon).az,sunPos(d,lc.lat,lc.lon).alt,sunPos(l.sunsetD,lc.lat,lc.lon).az,hd);sv.replaceWith(tmp.firstChild)}}}}}
+function startLive(){window.addEventListener('deviceorientationabsolute',onOrient);window.addEventListener('deviceorientation',onOrient)}
+function stopLive(){window.removeEventListener('deviceorientationabsolute',onOrient);window.removeEventListener('deviceorientation',onOrient);ui.heading=null}
+
 app.addEventListener('click',function(ev){
-  var b=ev.target.closest('[data-act]');if(!b)return;
+  var b=ev.target.closest('[data-act]');if(!b||b.disabled)return;
   var a=b.dataset.act,w=W(),k=b.dataset.k,id=b.dataset.i;
-  if(a!=='delw'&&a!=='imp')ui.arm=null;
+  if(a!=='delw'&&a!=='imp'&&a!=='delv')ui.arm=null;
   if(a==='dismiss'){ui.msg='';return render()}
   if(a==='new'){ui.view='new';ui.msg='';return render()}
-  if(a==='home'){ui.view='home';ui.edit=false;ui.copyText=null;window.scrollTo(0,0);return render()}
-  if(a==='backup'){ui.view='backup';ui.copyText=null;return render()}
-  if(a==='open'){ui.view='wed';ui.id=b.dataset.id;ui.tab='day';ui.edit=false;ui.copyText=null;window.scrollTo(0,0);return render()}
-  if(a==='tab'){ui.tab=b.dataset.tab;ui.copyText=null;return render()}
-  if(a==='edit'){if(ui.edit&&w)sortTimeline(w);ui.edit=!ui.edit;return render()}
-  if(!w&&a!=='copyall'&&a!=='imp')return;
-  if(a==='alerts'){w.alerts=w.alerts||{on:false,mins:10,golden:true};
+  if(a==='home'){ui.view='home';ui.edit=false;ui.copyText=null;ui.img=null;ui.live=false;stopLive();window.scrollTo(0,0);return render()}
+  if(a==='backup'||a==='venues'||a==='mileage'||a==='settings'){ui.view=a;ui.copyText=null;ui.msg='';ui.year=null;window.scrollTo(0,0);return render()}
+  if(a==='open')return openWed(b.dataset.id);
+  if(a==='openafter')return openWed(b.dataset.id,'after');
+  if(a==='backwed'){ui.view='wed';ui.imp=null;ui.retWed=false;window.scrollTo(0,0);return render()}
+  if(a==='newvenue'){var nv={id:uid(),name:'',lat:null,lon:null,parking:'',meet:'',spots:'',wet:'',notes:''};S.venues.push(nv);persist();ui.venueId=nv.id;ui.retWed=false;ui.view='venue';return render()}
+  if(a==='editvenue'){ui.venueId=b.dataset.v;ui.retWed=ui.view==='wed';ui.view='venue';window.scrollTo(0,0);return render()}
+  if(a==='delv'){
+    if(ui.arm!=='delv'){ui.arm='delv';return render()}
+    var dv=V(ui.venueId);S.weddings.forEach(function(x){if(x.venueId===ui.venueId){x.venueId=null;x.venue=dv.name;x.lat=dv.lat;x.lon=dv.lon}});
+    S.venues=S.venues.filter(function(x){return x.id!==ui.venueId});ui.arm=null;persist();ui.view=ui.retWed?'wed':'venues';return render();
+  }
+  if(a==='year'){var cy=ui.year==null?taxYear(todayStr()):ui.year;ui.year=cy+(+b.dataset.d);return render()}
+  if(a==='sharemiles'){
+    var yr=+b.dataset.y,s=S.settings,tot=0,lines=S.weddings.filter(function(x){return x.date&&taxYear(x.date)===yr&&x.date<=todayStr()}).sort(function(p,q){return p.date.localeCompare(q.date)}).map(function(x){var m=milesOneWay(x);if(m)tot+=m.m*2;return x.date+'  '+x.couple+'  '+(m?m.m*2+' miles'+(m.est?' (est.)':''):'no venue')});
+    return shareText('Mileage '+yr+'-'+(yr+1),'Business mileage, tax year '+yr+'–'+(yr+1)+' (return trips from '+s.baseName+')\n\n'+lines.join('\n')+'\n\nTotal: '+tot+' miles = '+money(tot*s.hmrc)+' at '+Math.round(s.hmrc*100)+'p a mile');
+  }
+  if(a==='sharebackup'){
+    var json=JSON.stringify(S),fn='wedding-day-backup-'+todayStr()+'.json';
+    var p=shareFile(fn,b64(json),'application/json','Wedding Day backup');
+    if(!p){ui.copyText=json;render()}
+    return;
+  }
+  if(a==='copyall')return copy(JSON.stringify(S));
+  if(a==='imp'){
+    var raw=(document.getElementById('imp')||{}).value||'',data;
+    try{data=JSON.parse(raw)}catch(e){data=null}
+    if(!data||!Array.isArray(data.weddings)){ui.arm=null;ui.msg='That doesn’t look like a backup from this app.';return render()}
+    if(ui.arm!=='imp'){ui.arm='imp';render();document.getElementById('imp').value=raw;return}
+    S={v:1,updatedAt:0,weddings:data.weddings,venues:Array.isArray(data.venues)?data.venues:[],settings:Object.assign({},DEF_SETTINGS,data.settings||{})};
+    S.weddings.forEach(migrate);ui.arm=null;touch();ui.view='home';ui.msg='Restored '+S.weddings.length+' wedding'+(S.weddings.length===1?'':'s')+'.';return render();
+  }
+  if(!w)return;
+  if(a==='tab'){ui.tab=b.dataset.tab;ui.copyText=null;ui.img=null;if(ui.tab==='venue'||ui.tab==='notes')ui.edit=false;if(ui.tab!=='day'){ui.live=false;stopLive()}return render()}
+  if(a==='edit'){if(ui.edit)sortTimeline(w);ui.edit=!ui.edit;ui.img=null;return render()}
+  if(a==='alerts'){
     if(w.alerts.on){w.alerts.on=false;touch();return render()}
-    return ensurePerm().then(function(ok){if(!ok){ui.msg='Alerts need notification permission. Allow it in Android Settings \u203a Apps \u203a Wedding Day \u203a Notifications.';return render()}w.alerts.on=true;touch();render()});
+    return ensurePerm().then(function(ok){if(!ok){ui.msg='Alerts need notification permission. Allow it in Android Settings › Apps › Wedding Day › Notifications.';return render()}w.alerts.on=true;touch();render()});
   }
   if(a==='golden'){w.alerts.golden=!w.alerts.golden;touch();return render()}
-  if(a==='testalert'){return ensurePerm().then(function(ok){if(!ok)return;LN.schedule({notifications:[{id:999,title:'Test alert',body:'Alerts are working for '+w.couple,schedule:{at:new Date(Date.now()+5000),allowWhileIdle:true}}]}).then(function(){ui.msg='Test alert set. Lock your phone and wait 5 seconds.';render()}).catch(function(e){ui.msg='Test failed: '+(e&&e.message||e);render()})})}
+  if(a==='testalert'){return ensurePerm().then(function(ok){if(!ok)return;LN.schedule({notifications:[{id:999,title:'Test alert',body:'Alerts are working for '+w.couple,smallIcon:'ic_stat_ob',schedule:{at:new Date(Date.now()+5000),allowWhileIdle:true}}]}).then(function(){ui.msg='Test alert set. Lock your phone and wait 5 seconds.';render()}).catch(function(e){ui.msg='Test failed: '+(e&&e.message||e);render()})})}
+  if(a==='wx')return fetchWeather(w);
+  if(a==='live'){
+    ui.live=!ui.live;
+    if(ui.live){var DOE=window.DeviceOrientationEvent;if(DOE&&typeof DOE.requestPermission==='function'){DOE.requestPermission().then(function(r){if(r==='granted')startLive()}).catch(function(){})}else startLive()}else stopLive();
+    return render();
+  }
+  if(a==='sharetl')return shareText(w.couple+' timeline',timelineText(w));
+  if(a==='tlimg'){
+    var go=function(){var url=timelineImage(w);var p=shareFile('timeline.png',url.split(',')[1],'image/png',w.couple+' timeline');if(!p){ui.img=url;render()}};
+    if(document.fonts&&document.fonts.load)Promise.all([document.fonts.load('600 76px "Cormorant Garamond"'),document.fonts.load('400 38px Jost'),document.fonts.load('600 38px Jost')]).then(go,go);else go();
+    return;
+  }
+  if(a==='gstart'){w.groupTimer={start:Date.now(),end:null};persist();return render()}
+  if(a==='gstop'){if(w.groupTimer)w.groupTimer.end=Date.now();persist();return render()}
+  if(a==='greset'){w.groupTimer=null;persist();return render()}
   if(a==='tick'){var it=find(w,k,id);if(it){it.done=!it.done;touch();render()}return}
   if(a==='del'){w[k]=w[k].filter(function(x){return x.id!==id});touch();return render()}
   if(a==='add'){
     var n={id:uid(),done:false};
     if(k==='timeline'){var last=w.timeline[w.timeline.length-1];n.time=last?fromMin(toMin(last.time)+15):'12:00';n.title='';n.note=''}
-    else if(k==='groups'){n.title='';n.people=''}else if(k==='contacts'){n.role='';n.name='';n.phone='';delete n.done}else n.text='';
+    else if(k==='groups'){n.title='';n.people=''}else if(k==='contacts'){n.role='';n.name='';n.phone='';delete n.done}else if(k==='after'){n.text='';n.offset=7}else n.text='';
     w[k].push(n);touch();render();
-    var ins=app.querySelectorAll('[data-i="'+n.id+'"]');for(var i=0;i<ins.length;i++){if(ins[i].tagName==='INPUT'&&ins[i].type!=='time'){ins[i].focus();break}}
+    var ins=app.querySelectorAll('[data-i="'+n.id+'"]');for(var i=0;i<ins.length;i++){if(ins[i].tagName==='INPUT'&&ins[i].type!=='time'&&ins[i].type!=='number'){ins[i].focus();break}}
     return;
   }
   if(a==='mv'){var arr=w[k],ix=arr.findIndex(function(x){return x.id===id}),j=ix+(+b.dataset.d);if(ix<0||j<0||j>=arr.length)return;var t=arr[ix];arr[ix]=arr[j];arr[j]=t;touch();return render()}
@@ -340,53 +760,94 @@ app.addEventListener('click',function(ev){
     w.timeline.forEach(function(x){if(!x.done&&(!today||toMin(x.time)>nm))x.time=fromMin(toMin(x.time)+m)});
     sortTimeline(w);touch();return render();
   }
-  if(a==='copytl'){
-    var l=light(w),txt=w.couple+' – '+niceDate(w.date,true)+(w.venue?'\n'+w.venue:'')+'\n\n'+w.timeline.map(function(x){return x.time+'  '+x.title+(x.note?' ('+x.note+')':'')}).join('\n')+(l?'\n\nSunset: '+l.sunset:'');
-    return copy(txt);
+  if(a==='savevenue'){
+    var sv={id:uid(),name:w.venue||'New venue',lat:w.lat,lon:w.lon,parking:'',meet:'',spots:'',wet:'',notes:''};
+    S.venues.push(sv);w.venueId=sv.id;persist();ui.venueId=sv.id;ui.retWed=true;ui.view='venue';window.scrollTo(0,0);return render();
   }
-  if(a==='copyall')return copy(JSON.stringify(S));
+  if(a==='unlink'){var uv=V(w.venueId);if(uv){w.venue=uv.name;w.lat=uv.lat;w.lon=uv.lon}w.venueId=null;persist();return render()}
+  if(a==='import'){ui.view='import';ui.imp=null;ui.msg='';window.scrollTo(0,0);return render()}
+  if(a==='parse'){
+    var txt=(document.getElementById('qtext')||{}).value||'';
+    if(!txt.trim()){ui.msg='Paste the answers first.';return render()}
+    var R=parseQuestionnaire(txt);R.notes=R.notes.map(function(s){return {text:s}});
+    R.rep_timeline=R.timeline.length>=3;R.rep_groups=R.groups.length>=2;
+    ui.imp=R;window.scrollTo(0,0);return render();
+  }
+  if(a==='impback'){ui.imp=null;return render()}
+  if(a==='impadd'){
+    var R2=ui.imp;
+    function pick(key){return R2[key].filter(function(x){return !x.off})}
+    pick('contacts').forEach(function(c){
+      var ex=w.contacts.filter(function(x){return x.role===c.role&&!x.phone&&!x.name})[0]||w.contacts.filter(function(x){return x.role===c.role&&!x.phone})[0];
+      if(ex){ex.name=c.name||ex.name;ex.phone=c.phone}else w.contacts.push({id:uid(),role:c.role,name:c.name,phone:c.phone});
+    });
+    var tl=pick('timeline');if(tl.length){if(R2.rep_timeline)w.timeline=[];tl.forEach(function(x){w.timeline.push({id:uid(),time:x.time,title:x.title,note:'',done:false})});sortTimeline(w)}
+    var gr=pick('groups');if(gr.length){if(R2.rep_groups)w.groups=[];gr.forEach(function(x){w.groups.push({id:uid(),title:x.title,people:x.people,done:false})})}
+    pick('shots').forEach(function(x){w.shots.push({id:uid(),text:x.text,done:false})});
+    var nt=pick('notes');if(nt.length)w.notes=(w.notes?w.notes+'\n\n':'')+nt.map(function(x){return x.text}).join('\n\n');
+    ui.imp=null;ui.view='wed';ui.tab='day';ui.msg='Added from the questionnaire. Check the People, Groups and Notes tabs.';touch();window.scrollTo(0,0);return render();
+  }
   if(a==='delw'){
     if(ui.arm!=='delw'){ui.arm='delw';return render()}
     S.weddings=S.weddings.filter(function(x){return x.id!==ui.id});ui.arm=null;ui.view='home';touch();return render();
   }
-  if(a==='imp'){
-    var raw=(document.getElementById('imp')||{}).value||'';
-    var data;try{data=JSON.parse(raw)}catch(e){data=null}
-    if(!data||!Array.isArray(data.weddings)){ui.arm=null;ui.msg='That doesn’t look like a backup from this app.';return render()}
-    if(ui.arm!=='imp'){ui.arm='imp';var keep=raw;render();document.getElementById('imp').value=keep;return}
-    S={v:1,updatedAt:0,weddings:data.weddings};ui.arm=null;touch();ui.view='home';ui.msg='Restored '+data.weddings.length+' wedding'+(data.weddings.length===1?'':'s')+'.';return render();
-  }
 });
 app.addEventListener('change',function(ev){
-  var el=ev.target,w=W();if(!w)return;
+  var el=ev.target;
+  if(el.dataset.set){var s=S.settings,k=el.dataset.set;s[k]=k==='baseName'?el.value:(isNaN(parseFloat(el.value))?DEF_SETTINGS[k]:parseFloat(el.value));persist();return render()}
+  if(el.dataset.vf){
+    var v=V(ui.venueId);if(!v)return;var f=el.dataset.vf;
+    if(f==='area'){var ar=VENUES[+el.value];if(el.value!==''&&ar){v.lat=ar[1];v.lon=ar[2];if(!v.name)v.name=ar[0]}}
+    else if(f==='lat'||f==='lon'){var num=parseFloat(String(el.value).replace(',','.'));v[f]=isNaN(num)?null:num}
+    else v[f]=el.value;
+    S.weddings.forEach(function(x){if(x.venueId===v.id){x.venue=v.name;x.lat=v.lat;x.lon=v.lon}});
+    persist();if(f==='area'||f==='name'||f==='lat'||f==='lon')render();return;
+  }
+  if(el.dataset.pick&&ui.imp){ui.imp[el.dataset.pick][+el.dataset.ix].off=!el.checked;return}
+  if(el.dataset.rep&&ui.imp){ui.imp['rep_'+el.dataset.rep]=el.checked;return}
+  var w=W();if(!w)return;
+  if(el.dataset.sun){ui.sunT=el.value;return render()}
   if(el.dataset.al){w.alerts[el.dataset.al]=+el.value;touch();return render()}
   if(el.dataset.w){
-    var f=el.dataset.w,v=el.value;
-    if(f==='area'){var vv=VENUES[+v];if(v!==''&&vv){w.lat=vv[1];w.lon=vv[2];if(!w.venue)w.venue=vv[0]}}
-    else if(f==='lat'||f==='lon'){var num=parseFloat(String(v).replace(',','.'));w[f]=isNaN(num)?null:num}
-    else w[f]=v;
-    touch();if(f!=='notes')render();
+    var fw=el.dataset.w,val=el.value;
+    if(fw==='where'){setWhere(w,val);touch();return render()}
+    if(fw==='lat'||fw==='lon'){var nn=parseFloat(String(val).replace(',','.'));w[fw]=isNaN(nn)?null:nn;w.weather=null}
+    else if(fw==='miles'){w.miles=val===''?null:+val}
+    else if(fw==='date'){w.date=val;w.weather=null}
+    else w[fw]=val;
+    touch();if(fw!=='notes'&&fw!=='wet')render();
     return;
   }
-  if(el.dataset.k&&el.dataset.i&&el.dataset.f){var it=find(w,el.dataset.k,el.dataset.i);if(it){it[el.dataset.f]=el.value;touch()}}
+  if(el.dataset.k&&el.dataset.i&&el.dataset.f){var it=find(w,el.dataset.k,el.dataset.i);if(it){it[el.dataset.f]=el.dataset.f==='offset'?(+el.value||0):el.value;touch()}}
 });
 app.addEventListener('input',function(ev){
-  var el=ev.target,w=W();if(!w||el.dataset.w!=='notes')return;
-  w.notes=el.value;S.updatedAt=Date.now();try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}
+  var el=ev.target,w=W();
+  if(w&&(el.dataset.w==='notes'||el.dataset.w==='wet')){w[el.dataset.w]=el.value;persist();return}
+  if(el.dataset.vf&&el.tagName==='TEXTAREA'){var v=V(ui.venueId);if(v){v[el.dataset.vf]=el.value;persist()}}
 });
 app.addEventListener('submit',function(ev){
   ev.preventDefault();var fd=new FormData(ev.target),f={};fd.forEach(function(v,k){f[k]=v});
-  var w=makeWedding(f);ui.view='wed';ui.id=w.id;ui.tab='day';ui.edit=false;window.scrollTo(0,0);render();
+  if(f.where&&f.where.indexOf('v:')===0)f.saved=f.where.slice(2);else if(f.where&&f.where.indexOf('a:')===0)f.venue=f.where.slice(2);
+  var w=makeWedding(f);openWed(w.id);
 });
-setInterval(function(){var w=W();if(ui.view==='wed'&&ui.tab==='day'&&!ui.edit&&w&&w.date===todayStr())render()},30000);
+setInterval(function(){
+  var w=W();if(ui.view!=='wed'||!w)return;
+  if(ui.tab==='groups'&&w.groupTimer&&w.groupTimer.start&&!w.groupTimer.end){var el=(Date.now()-w.groupTimer.start)/1000,g=document.getElementById('gtimer');if(g){g.textContent=Math.floor(el/60)+':'+pad(Math.floor(el%60));g.className='timer'+(el>(+S.settings.groupTarget||20)*60?' warn':'')}}
+},1000);
+setInterval(function(){var w=W();if(ui.view==='wed'&&ui.tab==='day'&&!ui.edit&&w&&w.date===todayStr()&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||''))render()},30000);
+if(APP){
+  APP.addListener('backButton',function(){
+    if(ui.arm){ui.arm=null;return render()}
+    if(ui.view==='import'){if(ui.imp){ui.imp=null;return render()}ui.view='wed';return render()}
+    if(ui.view==='venue'){ui.view=ui.retWed?'wed':'venues';return render()}
+    if(ui.view==='wed'&&ui.edit){var w=W();if(w)sortTimeline(w);ui.edit=false;return render()}
+    if(ui.img){ui.img=null;return render()}
+    if(ui.view!=='home'){ui.view='home';ui.copyText=null;ui.live=false;stopLive();window.scrollTo(0,0);return render()}
+    APP.exitApp();
+  });
+  APP.addListener('resume',function(){render()});
+}
 render();
-if(APP)APP.addListener('backButton',function(){
-  if(ui.arm){ui.arm=null;return render()}
-  if(ui.view==='wed'&&ui.edit){var w=W();if(w)sortTimeline(w);ui.edit=false;return render()}
-  if(ui.view!=='home'){ui.view='home';ui.copyText=null;window.scrollTo(0,0);return render()}
-  APP.exitApp();
-});
-if(APP)APP.addListener('resume',function(){render()});
 schedule();
 })();
 </script></body></html>
