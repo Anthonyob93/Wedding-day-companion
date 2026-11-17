@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Wedding Day Companion</title><link rel="stylesheet" href="fonts/fonts.css"><style id="css">
+:root{--cream:#FBF7F1;--card:#FFFFFF;--ink:#1A1A1A;--muted:#6E6A64;--gold:#A88241;--goldsoft:#F3EBDD;--line:#E7E0D5;--ok:#4F7A55;--warn:#B5523B}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--cream);color:var(--ink);font-family:Jost,system-ui,sans-serif;font-size:16px;line-height:1.4;-webkit-text-size-adjust:100%}
+#app{max-width:640px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 14px calc(40px + env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;margin:0;line-height:1.15}
+h1{font-size:30px}h2{font-size:24px}h3{font-size:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 12px}
+.card.tap{cursor:pointer}
+.muted{color:var(--muted)}.small{font-size:13px}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+button,.btn{font:inherit;font-weight:500;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:10px 14px;min-height:44px;cursor:pointer}
+button.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+button.gold{background:var(--gold);color:#fff;border-color:var(--gold)}
+button.ghost{background:transparent;border-color:transparent;color:var(--muted);padding:8px 10px}
+button.danger{color:var(--warn);border-color:#E9C9BF}
+button.armed{background:var(--warn);color:#fff;border-color:var(--warn)}
+button.full{width:100%}
+input,select,textarea{font:inherit;width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--ink);min-height:44px}
+textarea{min-height:90px;resize:vertical}
+label.f{display:block;margin:0 0 12px}
+label.f span{display:block;font-size:13px;color:var(--muted);margin:0 0 4px}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:0 -14px 12px;padding:2px 14px 6px;scrollbar-width:none;position:sticky;top:0;background:var(--cream);z-index:5}
+.tabs::-webkit-scrollbar{display:none}
+.tab{white-space:nowrap;border-radius:999px;padding:8px 14px;min-height:40px;font-size:15px}
+.tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tab .n{opacity:.7;font-size:12px;margin-left:4px}
+.light{background:var(--goldsoft);border-color:#E6D6BA}
+.light .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;text-align:center}
+.light .grid b{display:block;font-size:20px;font-family:"Cormorant Garamond",serif}
+.light .grid span{font-size:12px;color:var(--muted)}
+.now{border-color:var(--gold);border-width:2px}
+.now .big{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:600}
+.item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item .tm{font-weight:600;min-width:52px;font-variant-numeric:tabular-nums}
+.item.done .txt{color:var(--muted);text-decoration:line-through}
+.item.cur{background:var(--goldsoft);margin:0 -14px;padding:12px 14px;border-radius:8px}
+.chk{width:28px;height:28px;min-height:28px;flex:none;border:2px solid var(--gold);border-radius:8px;background:#fff;padding:0;display:flex;align-items:center;justify-content:center}
+.chk.on{background:var(--gold)}
+.chk.on::after{content:"";width:8px;height:14px;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-2px)}
+.edit-row{display:grid;gap:6px;padding:10px 0;border-top:1px solid var(--line)}
+.edit-row:first-child{border-top:0}
+.edit-row .two{display:grid;grid-template-columns:124px 1fr auto;gap:6px;align-items:center}
+.three{display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center}
+.x{min-height:44px;width:44px;padding:0;color:var(--warn)}
+.pill{display:inline-block;font-size:12px;padding:3px 9px;border-radius:999px;background:var(--goldsoft);color:#7A5B25}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:#fff;padding:10px 14px calc(10px + env(safe-area-inset-bottom));z-index:20}
+.bar .in{max-width:640px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.bar button{background:var(--gold);border-color:var(--gold);color:#fff}
+.msg{background:#FFF4E5;border:1px solid #F1D7AE;border-radius:10px;padding:10px 12px;margin:0 0 12px;font-size:14px}
+.prog{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:8px}
+.prog i{display:block;height:100%;background:var(--gold)}
+a.tel{color:var(--ink);font-weight:500}
+.empty{text-align:center;padding:28px 10px;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+pre.copy{white-space:pre-wrap;font:13px/1.4 ui-monospace,monospace;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;max-height:260px;overflow:auto}
+</style></head><body><div id="app"></div><script id="appjs">
+(function(){
+'use strict';
+var LS='obwd-v1';
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+var LN=null,APP=null;
+try{if(window.Capacitor&&window.Capacitor.Plugins){LN=window.Capacitor.Plugins.LocalNotifications||null;APP=window.Capacitor.Plugins.App||null}}catch(e){}
+var S=null;
+try{S=JSON.parse(localStorage.getItem(LS)||'null')}catch(e){S=null}
+if(!S||!Array.isArray(S.weddings))S={v:1,updatedAt:0,weddings:[]};
+var ui={view:'home',id:null,tab:'day',edit:false,msg:'',arm:null,copyText:null};
+
+/* ---------- venues (approximate coordinates) ---------- */
+var VENUES=[
+['Caernarfon Castle',53.1393,-4.2768],['Pwllheli',52.8886,-4.4176],['Penygroes',53.0560,-4.2840],['Llanberis / Llyn Padarn',53.1190,-4.1300],
+['Nant Gwrtheyrn',52.9730,-4.4580],['Portmeirion',52.9135,-4.0988],['Criccieth',52.9177,-4.2340],['Abersoch',52.8240,-4.5050],
+['Bangor',53.2274,-4.1293],['Beaumaris',53.2636,-4.0907],['Conwy',53.2800,-3.8290],['Llandudno',53.3240,-3.8270],
+['Betws-y-Coed',53.0930,-3.8000],['Porthmadog',52.9280,-4.1330],['Dinas Dinlle',53.0830,-4.3350],['Rhosneigr',53.2290,-4.5080]
+];
+
+/* ---------- templates (minutes relative to ceremony) ---------- */
+var TPL={
+ceremony:{label:'Ceremony (about 2 hours)',items:[[-30,'Arrive, meet registrar, check light and rules',''],[-20,'Venue details and guests arriving',''],[-10,'Couple arrival / getting into position',''],[0,'Ceremony','Vows, rings, first kiss, signing'],[30,'Congratulations and confetti',''],[45,'Family groups','Have a helper gathering people'],[65,'Couple portraits',''],[90,'Candids and finish','']]},
+half:{label:'Half day (about 4 hours)',items:[[-60,'Arrive, venue and detail shots',''],[-40,'Guests arriving, candids',''],[-10,'Couple arrival / entrance',''],[0,'Ceremony','Vows, rings, first kiss, signing'],[30,'Congratulations and confetti',''],[45,'Family groups','6–8 combinations, about 20 min'],[65,'Couple portraits','25–30 min while the light is good'],[95,'Drinks reception candids',''],[120,'Call to meal / room details',''],[150,'Speeches or meal',''],[180,'Coverage ends','']]},
+full:{label:'Full day (about 8 hours)',items:[[-180,'Prep: getting ready, details, outfits',''],[-120,'Prep: other half of the couple',''],[-60,'Venue and ceremony room details',''],[-30,'Guests arriving',''],[-10,'Couple arrival / entrance',''],[0,'Ceremony','Vows, rings, first kiss, signing'],[30,'Congratulations and confetti',''],[45,'Family groups',''],[75,'Couple portraits',''],[105,'Drinks reception candids',''],[135,'Room details, call to meal',''],[150,'Wedding breakfast',''],[210,'Speeches',''],[255,'Cake cutting',''],[285,'First dance',''],[300,'Dance floor',''],[330,'Coverage ends','']]}
+};
+function groupTpl(a,b){a=a||'Partner 1';b=b||'Partner 2';return [
+['Couple with '+a+"'s parents",''],['Couple with '+a+"'s immediate family",''],['Couple with '+b+"'s parents",''],['Couple with '+b+"'s immediate family",''],
+['Couple with both families',''],['Couple with grandparents',''],['Wedding party',''],['Everyone','']]}
+var SHOTS=['Rings and details','Outfits and flowers','Entrance / walking in','Vows','Ring exchange','First kiss','Signing the register','Confetti','Grandparents with the couple','Couple portraits in best light','Room and table details','Cake','First dance'];
+var KIT=['Batteries charged (plus spares)','Memory cards formatted (plus spares)','Lenses cleaned','Flash and charged batteries','Lens cloth and rain cover','Umbrella','Printed timeline and group list','Venue address and parking checked','Water and snacks','Phone charged'];
+
+/* ---------- helpers ---------- */
+function toMin(t){if(!t)return null;var p=String(t).split(':');return (+p[0])*60+(+p[1])}
+function fromMin(m){m=((Math.round(m)%1440)+1440)%1440;var h=Math.floor(m/60),mm=m%60;return (h<10?'0':'')+h+':'+(mm<10?'0':'')+mm}
+function pad(n){return (n<10?'0':'')+n}
+function todayStr(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function nowMin(){var d=new Date();return d.getHours()*60+d.getMinutes()}
+function niceDate(s,long){if(!s)return 'No date';var d=new Date(s+'T12:00:00');return d.toLocaleDateString('en-GB',long?{weekday:'long',day:'numeric',month:'long',year:'numeric'}:{weekday:'short',day:'numeric',month:'short',year:'numeric'})}
+function daysUntil(s){if(!s)return null;var a=new Date(todayStr()+'T12:00:00'),b=new Date(s+'T12:00:00');return Math.round((b-a)/86400000)}
+function names(c){var p=String(c||'').split(/\s*(?:&|\+|\band\b)\s*/i).filter(Boolean);return [p[0]||'',p[1]||'']}
+function W(){for(var i=0;i<S.weddings.length;i++)if(S.weddings[i].id===ui.id)return S.weddings[i];return null}
+function sortTimeline(w){w.timeline.sort(function(a,b){return (toMin(a.time)||0)-(toMin(b.time)||0)})}
+
+/* ---------- sun times (sunrise equation) ---------- */
+function sunAt(dateStr,lat,lon,alt){
+  if(!dateStr||lat==null||lon==null||isNaN(lat)||isNaN(lon))return null;
+  var p=dateStr.split('-'),rad=Math.PI/180;
+  var jd=Date.UTC(+p[0],+p[1]-1,+p[2],12)/86400000+2440587.5;
+  var n=Math.round(jd-2451545.0);
+  var js=n-lon/360;
+  var M=(357.5291+0.98560028*js)%360;
+  var C=1.9148*Math.sin(M*rad)+0.02*Math.sin(2*M*rad)+0.0003*Math.sin(3*M*rad);
+  var L=(M+C+180+102.9372)%360;
+  var jt=2451545.0+js+0.0053*Math.sin(M*rad)-0.0069*Math.sin(2*L*rad);
+  var sd=Math.sin(L*rad)*Math.sin(23.4397*rad),cd=Math.cos(Math.asin(sd));
+  var cw=(Math.sin(alt*rad)-Math.sin(lat*rad)*sd)/(Math.cos(lat*rad)*cd);
+  if(cw<-1||cw>1)return null;
+  var w=Math.acos(cw)/rad;
+  function t(j){return new Date((j-2440587.5)*86400000)}
+  return {rise:t(jt-w/360),set:t(jt+w/360)};
+}
+function fmtT(d){return d?d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/London'}):'–'}
+function light(w){
+  var s=sunAt(w.date,w.lat,w.lon,-0.833),g=sunAt(w.date,w.lat,w.lon,6),b=sunAt(w.date,w.lat,w.lon,-6);
+  if(!s)return null;
+  return {sunrise:fmtT(s.rise),golden:g?fmtT(g.set):'–',sunset:fmtT(s.set),blue:b?fmtT(b.set):'–'};
+}
+
+/* ---------- persistence ---------- */
+function touch(){S.updatedAt=Date.now();try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){ui.msg='Couldn\u2019t save to the phone\u2019s storage. Copy a backup to be safe.'}schedule()}
+
+/* ---------- alerts ---------- */
+var schedT=null;
+function at(dateStr,time){if(!dateStr||!time)return null;var d=new Date(dateStr+'T'+time+':00');return isNaN(d)?null:d}
+function schedule(){clearTimeout(schedT);schedT=setTimeout(doSchedule,800)}
+function doSchedule(){
+  if(!LN)return;
+  var list=[],id=1,now=Date.now();
+  S.weddings.forEach(function(w){
+    if(!w.alerts||!w.alerts.on)return;
+    var m=+w.alerts.mins||10;
+    w.timeline.forEach(function(x){
+      if(x.done)return;var d=at(w.date,x.time);if(!d)return;var t=new Date(d.getTime()-m*60000);
+      if(t.getTime()>now+5000&&id<400)list.push({id:id++,title:x.title+' at '+x.time,body:(m?'In '+m+' min':'Now')+' \u00b7 '+w.couple+(x.note?' \u00b7 '+x.note:''),schedule:{at:t,allowWhileIdle:true}});
+    });
+    if(w.alerts.golden){var s=sunAt(w.date,w.lat,w.lon,6);if(s){var g=new Date(s.set.getTime()-15*60000);if(g.getTime()>now+5000)list.push({id:id++,title:'Golden hour in 15 min',body:'Starts '+fmtT(s.set)+', sunset '+fmtT(sunAt(w.date,w.lat,w.lon,-0.833).set)+' \u00b7 '+w.couple,schedule:{at:g,allowWhileIdle:true}})}}
+  });
+  LN.getPending().then(function(p){var c=(p&&p.notifications||[]).map(function(n){return {id:n.id}});return c.length?LN.cancel({notifications:c}):null})
+  .catch(function(){}).then(function(){return list.length?LN.schedule({notifications:list}):null}).catch(function(e){ui.msg='Couldn\u2019t set alerts: '+(e&&e.message||e);render()});
+}
+function ensurePerm(){
+  if(!LN)return Promise.resolve(false);
+  return LN.checkPermissions().then(function(p){if(p.display==='granted')return true;return LN.requestPermissions().then(function(r){return r.display==='granted'})}).catch(function(){return false});
+}
+
+/* ---------- creating ---------- */
+function makeWedding(f){
+  var v=VENUES[+f.venue]||null,ab=names(f.couple),c=toMin(f.ceremony)||toMin('13:00'),t=TPL[f.pkg]||TPL.half;
+  var w={id:uid(),couple:f.couple||'New couple',date:f.date||'',venue:f.venueName||(v?v[0]:''),lat:v?v[1]:null,lon:v?v[2]:null,
+    pkg:f.pkg,notes:'',created:Date.now(),alerts:{on:false,mins:10,golden:true},
+    timeline:t.items.map(function(x){return {id:uid(),time:fromMin(c+x[0]),title:x[1],note:x[2],done:false}}),
+    groups:groupTpl(ab[0],ab[1]).map(function(x){return {id:uid(),title:x[0],people:x[1],done:false}}),
+    shots:SHOTS.map(function(x){return {id:uid(),text:x,done:false}}),
+    kit:KIT.map(function(x){return {id:uid(),text:x,done:false}}),
+    contacts:[{id:uid(),role:'Couple',name:f.couple||'',phone:''},{id:uid(),role:'Venue coordinator',name:'',phone:''},{id:uid(),role:'Group photo helper',name:'',phone:''}]};
+  S.weddings.push(w);touch();return w;
+}
+
+/* ---------- rendering ---------- */
+var app=document.getElementById('app');
+function bar(){return ''}
+function msg(){return ui.msg?'<div class="msg">'+esc(ui.msg)+' <button class="ghost small" data-act="dismiss">OK</button></div>':''}
+function render(){
+  var h='';
+  if(ui.view==='new')h=rNew();else if(ui.view==='wed'&&W())h=rWed();else if(ui.view==='backup')h=rBackup();else{ui.view='home';h=rHome()}
+  app.innerHTML=h+bar();
+}
+function rHome(){
+  var t=todayStr(),list=S.weddings.slice().sort(function(a,b){return (a.date||'9999').localeCompare(b.date||'9999')});
+  var up=list.filter(function(w){return !w.date||w.date>=t}),past=list.filter(function(w){return w.date&&w.date<t}).reverse();
+  var h=msg()+'<div class="row between" style="margin-bottom:12px"><h1>Weddings</h1><button class="primary" data-act="new">+ Add</button></div>';
+  if(!list.length)h+='<div class="card empty"><h3>No weddings yet</h3><p>Add one and you’ll get a timeline, group list, shot list, kit check and light times for the venue.</p><button class="gold" data-act="new">Add your first wedding</button></div>';
+  function card(w){
+    var dd=daysUntil(w.date),badge=dd===0?'<span class="pill">Today</span>':dd!=null&&dd>0?'<span class="pill">'+(dd===1?'Tomorrow':'In '+dd+' days')+'</span>':'';
+    var tot=w.timeline.length+w.groups.length+w.shots.length,dn=w.timeline.filter(f).length+w.groups.filter(f).length+w.shots.filter(f).length;
+    return '<div class="card tap" data-act="open" data-id="'+w.id+'"><div class="row between"><h3>'+esc(w.couple)+'</h3>'+badge+'</div><div class="muted small">'+esc(niceDate(w.date))+(w.venue?' · '+esc(w.venue):'')+'</div>'+(dn?'<div class="prog"><i style="width:'+Math.round(dn/tot*100)+'%"></i></div>':'')+'</div>';
+  }
+  function f(x){return x.done}
+  if(up.length)h+=up.map(card).join('');
+  if(past.length)h+='<h3 style="margin:18px 0 10px" class="muted">Past</h3>'+past.map(card).join('');
+  h+='<hr><button class="ghost full" data-act="backup">Backup and restore</button>';
+  return h;
+}
+function rNew(){
+  var o='<option value="">Other / not listed</option>'+VENUES.map(function(v,i){return '<option value="'+i+'">'+esc(v[0])+'</option>'}).join('');
+  var p=Object.keys(TPL).map(function(k){return '<option value="'+k+'"'+(k==='half'?' selected':'')+'>'+esc(TPL[k].label)+'</option>'}).join('');
+  return '<div class="row between" style="margin-bottom:12px"><h1>New wedding</h1><button class="ghost" data-act="home">Cancel</button></div>'+
+  '<form id="nf" class="card"><label class="f"><span>Couple</span><input name="couple" placeholder="e.g. Sam & Alex" required></label>'+
+  '<label class="f"><span>Date</span><input type="date" name="date" required></label>'+
+  '<label class="f"><span>Area (for sunset and golden hour)</span><select name="venue">'+o+'</select></label>'+
+  '<label class="f"><span>Venue name</span><input name="venueName" placeholder="Leave blank to use the area"></label>'+
+  '<label class="f"><span>Ceremony time</span><input type="time" name="ceremony" value="13:00" required></label>'+
+  '<label class="f"><span>Coverage</span><select name="pkg">'+p+'</select></label>'+
+  '<p class="muted small">The timeline is built around the ceremony time. You can change everything afterwards.</p>'+
+  '<button class="primary full" type="submit">Create</button></form>';
+}
+function tabsHtml(w){
+  function c(a){return a.filter(function(x){return x.done}).length+'/'+a.length}
+  var T=[['day','Day',c(w.timeline)],['groups','Groups',c(w.groups)],['shots','Shots',c(w.shots)],['people','People',''],['kit','Kit',c(w.kit)],['notes','Notes','']];
+  return '<div class="tabs">'+T.map(function(t){return '<button class="tab'+(ui.tab===t[0]?' on':'')+'" data-act="tab" data-tab="'+t[0]+'">'+t[1]+(t[2]?'<span class="n">'+t[2]+'</span>':'')+'</button>'}).join('')+'</div>';
+}
+function rWed(){
+  var w=W(),dd=daysUntil(w.date);
+  var h=msg()+'<div class="row between" style="margin:4px 0 6px"><button class="ghost" data-act="home" style="padding-left:0">‹ Weddings</button><button class="'+(ui.edit?'primary':'')+'" data-act="edit">'+(ui.edit?'Done':'Edit')+'</button></div>';
+  h+='<h1>'+esc(w.couple)+'</h1><div class="muted" style="margin:2px 0 14px">'+esc(niceDate(w.date,true))+(w.venue?' · '+esc(w.venue):'')+(dd!=null&&dd>0?' · in '+dd+' day'+(dd===1?'':'s'):'')+'</div>';
+  h+=tabsHtml(w);
+  if(ui.tab==='day')h+=rDay(w);
+  else if(ui.tab==='groups')h+=rList(w,'groups');
+  else if(ui.tab==='shots')h+=rList(w,'shots');
+  else if(ui.tab==='kit')h+=rList(w,'kit');
+  else if(ui.tab==='people')h+=rPeople(w);
+  else h+=rNotes(w);
+  return h;
+}
+function rLight(w){
+  var l=light(w);
+  if(!l)return '<div class="card light small">Pick an area under Notes › Wedding details to see sunset and golden hour.</div>';
+  return '<div class="card light"><div class="row between"><b>Light on the day</b><span class="small muted">'+esc(w.venue||'')+'</span></div><div class="grid"><div><b>'+l.golden+'</b><span>Golden hour starts</span></div><div><b>'+l.sunset+'</b><span>Sunset</span></div><div><b>'+l.blue+'</b><span>Blue hour ends</span></div></div><div class="small muted" style="margin-top:8px">Sunrise '+l.sunrise+'. Hills and mountains can block the sun well before these times, so plan portraits earlier.</div></div>';
+}
+function rNow(w){
+  if(w.date!==todayStr()||!w.timeline.length)return '';
+  var n=nowMin(),cur=null,next=null;
+  for(var i=0;i<w.timeline.length;i++){var m=toMin(w.timeline[i].time);if(m<=n)cur=w.timeline[i];else if(!next)next=w.timeline[i]}
+  var h='<div class="card now"><div class="small muted">Now</div><div class="big">'+esc(cur?cur.title:'Before the first item')+'</div>';
+  if(next){var mins=toMin(next.time)-n;h+='<div style="margin-top:6px">Next: <b>'+esc(next.title)+'</b> at '+esc(next.time)+' <span class="pill">in '+(mins>=60?Math.floor(mins/60)+'h '+(mins%60)+'m':mins+' min')+'</span></div>'}
+  else h+='<div style="margin-top:6px" class="muted">That’s the last item on the timeline.</div>';
+  return h+'</div>';
+}
+function rAlerts(w){
+  var a=w.alerts||{on:false,mins:10,golden:true};
+  if(!LN)return '';
+  var opts=[5,10,15,20,30].map(function(m){return '<option value="'+m+'"'+(+a.mins===m?' selected':'')+'>'+m+' min before</option>'}).join('');
+  return '<div class="card"><div class="row between"><div><b>Alerts</b><div class="small muted">'+(a.on?'Your phone buzzes before each item':'Off')+'</div></div><button class="'+(a.on?'gold':'')+'" data-act="alerts">'+(a.on?'On':'Turn on')+'</button></div>'+
+  (a.on?'<div class="three" style="margin-top:10px"><select data-al="mins">'+opts+'</select><button data-act="golden" class="'+(a.golden?'gold':'')+'">Golden hour '+(a.golden?'\u2713':'')+'</button></div><button class="ghost full small" data-act="testalert" style="margin-top:6px">Send a test alert in 5 seconds</button>':'')+'</div>';
+}
+function rDay(w){
+  var h=rNow(w)+rLight(w)+rAlerts(w);
+  if(ui.edit){
+    h+='<div class="card"><h3 style="margin-bottom:6px">Timeline</h3>'+w.timeline.map(function(x){return '<div class="edit-row"><div class="two"><input type="time" value="'+esc(x.time)+'" data-k="timeline" data-i="'+x.id+'" data-f="time"><input value="'+esc(x.title)+'" placeholder="What’s happening" data-k="timeline" data-i="'+x.id+'" data-f="title"><button class="x" data-act="del" data-k="timeline" data-i="'+x.id+'" aria-label="Remove">✕</button></div><input value="'+esc(x.note)+'" placeholder="Note (optional)" data-k="timeline" data-i="'+x.id+'" data-f="note"></div>'}).join('')+
+    '<button class="full" data-act="add" data-k="timeline" style="margin-top:8px">+ Add item</button>'+
+    '<hr><div class="small muted" style="margin-bottom:6px">Running late? Shift everything still to come:</div><div class="row wrap"><button data-act="shift" data-m="-15">−15 min</button><button data-act="shift" data-m="-5">−5</button><button data-act="shift" data-m="5">+5</button><button data-act="shift" data-m="15">+15 min</button></div><div class="small muted" style="margin-top:6px">On the wedding day this only moves items that haven’t started yet.</div></div>';
+  }else{
+    var n=nowMin(),isToday=w.date===todayStr(),curId=null;
+    if(isToday)w.timeline.forEach(function(x){if(toMin(x.time)<=n)curId=x.id});
+    h+='<div class="card">'+(w.timeline.length?w.timeline.map(function(x){return '<div class="item'+(x.done?' done':'')+(x.id===curId?' cur':'')+'"><button class="chk'+(x.done?' on':'')+'" data-act="tick" data-k="timeline" data-i="'+x.id+'" aria-label="Done"></button><div class="tm">'+esc(x.time)+'</div><div class="txt grow"><div>'+esc(x.title)+'</div>'+(x.note?'<div class="small muted">'+esc(x.note)+'</div>':'')+'</div></div>'}).join(''):'<div class="empty">No timeline yet. Tap Edit to add one.</div>')+'</div>';
+    h+='<button class="full" data-act="copytl">Copy timeline to send to the couple</button>';
+    if(ui.copyText!=null)h+='<p class="small muted">Couldn’t copy automatically, so select the text below and copy it:</p><pre class="copy">'+esc(ui.copyText)+'</pre>';
+  }
+  return h;
+}
+function rList(w,k){
+  var items=w[k],isG=k==='groups';
+  var title={groups:'Family groups',shots:'Must-have shots',kit:'Kit check'}[k];
+  var tip={groups:'Keep it to 8 or so. Read names out from here and tick each one off as you go.',shots:'Tick as you get them. Glance here before the coverage ends.',kit:'Run through this the night before.'}[k];
+  var h='<div class="card"><div class="row between"><h3>'+title+'</h3><span class="small muted">'+items.filter(function(x){return x.done}).length+' of '+items.length+'</span></div><div class="small muted" style="margin:4px 0 8px">'+tip+'</div>';
+  if(ui.edit){
+    h+=items.map(function(x){return '<div class="edit-row"><div class="row"><input class="grow" value="'+esc(isG?x.title:x.text)+'" data-k="'+k+'" data-i="'+x.id+'" data-f="'+(isG?'title':'text')+'"><button class="x" data-act="del" data-k="'+k+'" data-i="'+x.id+'" aria-label="Remove">✕</button></div>'+(isG?'<input value="'+esc(x.people)+'" placeholder="Names (e.g. Mum Sue, Dad Gareth, Nain)" data-k="groups" data-i="'+x.id+'" data-f="people">':'')+'</div>'}).join('');
+    h+='<button class="full" data-act="add" data-k="'+k+'" style="margin-top:8px">+ Add</button>';
+    if(k!=='kit')h+='<div class="small muted" style="margin-top:10px">Use ↑ ↓ to reorder:</div>'+items.map(function(x,i){return '<div class="row between small" style="padding:4px 0"><span class="grow">'+esc(isG?x.title:x.text)+'</span><button class="ghost" data-act="mv" data-k="'+k+'" data-i="'+x.id+'" data-d="-1"'+(i===0?' disabled':'')+'>↑</button><button class="ghost" data-act="mv" data-k="'+k+'" data-i="'+x.id+'" data-d="1"'+(i===items.length-1?' disabled':'')+'>↓</button></div>'}).join('');
+  }else{
+    h+=items.length?items.map(function(x,i){return '<div class="item'+(x.done?' done':'')+'"><button class="chk'+(x.done?' on':'')+'" data-act="tick" data-k="'+k+'" data-i="'+x.id+'" aria-label="Done"></button>'+(isG?'<div class="tm">'+(i+1)+'</div>':'')+'<div class="txt grow"><div>'+esc(isG?x.title:x.text)+'</div>'+(isG&&x.people?'<div class="small muted">'+esc(x.people)+'</div>':'')+'</div></div>'}).join(''):'<div class="empty">Nothing here yet. Tap Edit to add.</div>';
+    if(items.some(function(x){return x.done}))h+='<button class="ghost full" data-act="reset" data-k="'+k+'">Untick all</button>';
+  }
+  return h+'</div>';
+}
+function rPeople(w){
+  var h='<div class="card"><h3 style="margin-bottom:6px">Contacts</h3>';
+  if(ui.edit){
+    h+=w.contacts.map(function(x){return '<div class="edit-row"><div class="row"><input class="grow" value="'+esc(x.role)+'" placeholder="Role" data-k="contacts" data-i="'+x.id+'" data-f="role"><button class="x" data-act="del" data-k="contacts" data-i="'+x.id+'" aria-label="Remove">✕</button></div><div class="three"><input value="'+esc(x.name)+'" placeholder="Name" data-k="contacts" data-i="'+x.id+'" data-f="name"><input type="tel" value="'+esc(x.phone)+'" placeholder="Mobile" data-k="contacts" data-i="'+x.id+'" data-f="phone"></div></div>'}).join('')+'<button class="full" data-act="add" data-k="contacts" style="margin-top:8px">+ Add contact</button>';
+  }else{
+    h+=w.contacts.length?w.contacts.map(function(x){return '<div class="item"><div class="txt grow"><div class="small muted">'+esc(x.role)+'</div><div>'+esc(x.name||'—')+'</div></div>'+(x.phone?'<a class="tel" href="tel:'+esc(x.phone.replace(/[^\d+]/g,''))+'">'+esc(x.phone)+'</a>':'')+'</div>'}).join(''):'<div class="empty">No contacts yet.</div>';
+  }
+  return h+'</div>';
+}
+function rNotes(w){
+  var o='<option value="">Keep current'+(w.lat!=null?'':' (none set)')+'</option>'+VENUES.map(function(v,i){return '<option value="'+i+'">'+esc(v[0])+'</option>'}).join('');
+  var h='<div class="card"><h3 style="margin-bottom:8px">Notes</h3><textarea data-w="notes" placeholder="Venue rules, parking, confetti, flash restrictions, anything else…">'+esc(w.notes)+'</textarea></div>';
+  h+='<div class="card"><h3 style="margin-bottom:10px">Wedding details</h3><label class="f"><span>Couple</span><input value="'+esc(w.couple)+'" data-w="couple"></label><label class="f"><span>Date</span><input type="date" value="'+esc(w.date)+'" data-w="date"></label><label class="f"><span>Venue name</span><input value="'+esc(w.venue)+'" data-w="venue"></label><label class="f"><span>Area for light times</span><select data-w="area">'+o+'</select></label>'+
+  '<div class="three"><label class="f"><span>Latitude</span><input inputmode="decimal" value="'+(w.lat==null?'':w.lat)+'" data-w="lat"></label><label class="f"><span>Longitude</span><input inputmode="decimal" value="'+(w.lon==null?'':w.lon)+'" data-w="lon"></label></div><div class="small muted">For an exact venue, long-press it in Google Maps and copy the two numbers here.</div></div>';
+  h+='<button class="'+(ui.arm==='delw'?'armed':'danger')+' full" data-act="delw">'+(ui.arm==='delw'?'Tap again to delete this wedding':'Delete this wedding')+'</button>';
+  return h;
+}
+function rBackup(){
+  return '<div class="row between" style="margin-bottom:12px"><h1>Backup</h1><button class="ghost" data-act="home">Done</button></div>'+msg()+
+  '<div class="card"><h3>Copy a backup</h3><p class="small muted">Copies every wedding as text. Paste it into an email to yourself now and then, so nothing is lost if you change phones.</p><button class="full" data-act="copyall">Copy all data</button>'+(ui.copyText!=null?'<pre class="copy">'+esc(ui.copyText)+'</pre>':'')+'</div>'+
+  '<div class="card"><h3>Restore</h3><p class="small muted">Paste a backup here. It replaces everything currently in the app.</p><textarea id="imp" placeholder="Paste backup text"></textarea><button class="'+(ui.arm==='imp'?'armed':'')+' full" data-act="imp" style="margin-top:8px">'+(ui.arm==='imp'?'Tap again to replace everything':'Restore from backup')+'</button></div>';
+}
+
+/* ---------- events ---------- */
+function find(w,k,id){var a=w[k];for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null}
+function copy(text){
+  ui.copyText=null;
+  try{navigator.clipboard.writeText(text).then(function(){ui.msg='Copied.';render()},function(){ui.copyText=text;render()})}catch(e){ui.copyText=text;render()}
+}
+app.addEventListener('click',function(ev){
+  var b=ev.target.closest('[data-act]');if(!b)return;
+  var a=b.dataset.act,w=W(),k=b.dataset.k,id=b.dataset.i;
+  if(a!=='delw'&&a!=='imp')ui.arm=null;
+  if(a==='dismiss'){ui.msg='';return render()}
+  if(a==='new'){ui.view='new';ui.msg='';return render()}
+  if(a==='home'){ui.view='home';ui.edit=false;ui.copyText=null;window.scrollTo(0,0);return render()}
+  if(a==='backup'){ui.view='backup';ui.copyText=null;return render()}
+  if(a==='open'){ui.view='wed';ui.id=b.dataset.id;ui.tab='day';ui.edit=false;ui.copyText=null;window.scrollTo(0,0);return render()}
+  if(a==='tab'){ui.tab=b.dataset.tab;ui.copyText=null;return render()}
+  if(a==='edit'){if(ui.edit&&w)sortTimeline(w);ui.edit=!ui.edit;return render()}
+  if(!w&&a!=='copyall'&&a!=='imp')return;
+  if(a==='alerts'){w.alerts=w.alerts||{on:false,mins:10,golden:true};
+    if(w.alerts.on){w.alerts.on=false;touch();return render()}
+    return ensurePerm().then(function(ok){if(!ok){ui.msg='Alerts need notification permission. Allow it in Android Settings \u203a Apps \u203a Wedding Day \u203a Notifications.';return render()}w.alerts.on=true;touch();render()});
+  }
+  if(a==='golden'){w.alerts.golden=!w.alerts.golden;touch();return render()}
+  if(a==='testalert'){return ensurePerm().then(function(ok){if(!ok)return;LN.schedule({notifications:[{id:999,title:'Test alert',body:'Alerts are working for '+w.couple,schedule:{at:new Date(Date.now()+5000),allowWhileIdle:true}}]}).then(function(){ui.msg='Test alert set. Lock your phone and wait 5 seconds.';render()}).catch(function(e){ui.msg='Test failed: '+(e&&e.message||e);render()})})}
+  if(a==='tick'){var it=find(w,k,id);if(it){it.done=!it.done;touch();render()}return}
+  if(a==='del'){w[k]=w[k].filter(function(x){return x.id!==id});touch();return render()}
+  if(a==='add'){
+    var n={id:uid(),done:false};
+    if(k==='timeline'){var last=w.timeline[w.timeline.length-1];n.time=last?fromMin(toMin(last.time)+15):'12:00';n.title='';n.note=''}
+    else if(k==='groups'){n.title='';n.people=''}else if(k==='contacts'){n.role='';n.name='';n.phone='';delete n.done}else n.text='';
+    w[k].push(n);touch();render();
+    var ins=app.querySelectorAll('[data-i="'+n.id+'"]');for(var i=0;i<ins.length;i++){if(ins[i].tagName==='INPUT'&&ins[i].type!=='time'){ins[i].focus();break}}
+    return;
+  }
+  if(a==='mv'){var arr=w[k],ix=arr.findIndex(function(x){return x.id===id}),j=ix+(+b.dataset.d);if(ix<0||j<0||j>=arr.length)return;var t=arr[ix];arr[ix]=arr[j];arr[j]=t;touch();return render()}
+  if(a==='reset'){w[k].forEach(function(x){x.done=false});touch();return render()}
+  if(a==='shift'){
+    var m=+b.dataset.m,today=w.date===todayStr(),nm=nowMin();
+    w.timeline.forEach(function(x){if(!x.done&&(!today||toMin(x.time)>nm))x.time=fromMin(toMin(x.time)+m)});
+    sortTimeline(w);touch();return render();
+  }
+  if(a==='copytl'){
+    var l=light(w),txt=w.couple+' – '+niceDate(w.date,true)+(w.venue?'\n'+w.venue:'')+'\n\n'+w.timeline.map(function(x){return x.time+'  '+x.title+(x.note?' ('+x.note+')':'')}).join('\n')+(l?'\n\nSunset: '+l.sunset:'');
+    return copy(txt);
+  }
+  if(a==='copyall')return copy(JSON.stringify(S));
+  if(a==='delw'){
+    if(ui.arm!=='delw'){ui.arm='delw';return render()}
+    S.weddings=S.weddings.filter(function(x){return x.id!==ui.id});ui.arm=null;ui.view='home';touch();return render();
+  }
+  if(a==='imp'){
+    var raw=(document.getElementById('imp')||{}).value||'';
+    var data;try{data=JSON.parse(raw)}catch(e){data=null}
+    if(!data||!Array.isArray(data.weddings)){ui.arm=null;ui.msg='That doesn’t look like a backup from this app.';return render()}
+    if(ui.arm!=='imp'){ui.arm='imp';var keep=raw;render();document.getElementById('imp').value=keep;return}
+    S={v:1,updatedAt:0,weddings:data.weddings};ui.arm=null;touch();ui.view='home';ui.msg='Restored '+data.weddings.length+' wedding'+(data.weddings.length===1?'':'s')+'.';return render();
+  }
+});
+app.addEventListener('change',function(ev){
+  var el=ev.target,w=W();if(!w)return;
+  if(el.dataset.al){w.alerts[el.dataset.al]=+el.value;touch();return render()}
+  if(el.dataset.w){
+    var f=el.dataset.w,v=el.value;
+    if(f==='area'){var vv=VENUES[+v];if(v!==''&&vv){w.lat=vv[1];w.lon=vv[2];if(!w.venue)w.venue=vv[0]}}
+    else if(f==='lat'||f==='lon'){var num=parseFloat(String(v).replace(',','.'));w[f]=isNaN(num)?null:num}
+    else w[f]=v;
+    touch();if(f!=='notes')render();
+    return;
+  }
+  if(el.dataset.k&&el.dataset.i&&el.dataset.f){var it=find(w,el.dataset.k,el.dataset.i);if(it){it[el.dataset.f]=el.value;touch()}}
+});
+app.addEventListener('input',function(ev){
+  var el=ev.target,w=W();if(!w||el.dataset.w!=='notes')return;
+  w.notes=el.value;S.updatedAt=Date.now();try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}
+});
+app.addEventListener('submit',function(ev){
+  ev.preventDefault();var fd=new FormData(ev.target),f={};fd.forEach(function(v,k){f[k]=v});
+  var w=makeWedding(f);ui.view='wed';ui.id=w.id;ui.tab='day';ui.edit=false;window.scrollTo(0,0);render();
+});
+setInterval(function(){var w=W();if(ui.view==='wed'&&ui.tab==='day'&&!ui.edit&&w&&w.date===todayStr())render()},30000);
+render();
+if(APP)APP.addListener('backButton',function(){
+  if(ui.arm){ui.arm=null;return render()}
+  if(ui.view==='wed'&&ui.edit){var w=W();if(w)sortTimeline(w);ui.edit=false;return render()}
+  if(ui.view!=='home'){ui.view='home';ui.copyText=null;window.scrollTo(0,0);return render()}
+  APP.exitApp();
+});
+if(APP)APP.addListener('resume',function(){render()});
+schedule();
+})();
+</script></body></html>

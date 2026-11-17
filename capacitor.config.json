@@ -1,0 +1,9 @@
+{
+  "appId": "uk.obphotography.weddingday",
+  "appName": "Wedding Day",
+  "webDir": "www",
+  "android": { "backgroundColor": "#FBF7F1" },
+  "plugins": {
+    "LocalNotifications": { "smallIcon": "ic_stat_ob", "iconColor": "#A88241" }
+  }
+}
