@@ -122,21 +122,23 @@ full:{label:'Full Day – up to 10 hours (£1,250)',items:[[-210,'Prep: getting 
 };
 var TYPES={
  wedding:{label:'Wedding',noun:'wedding',start:'Ceremony time',startDef:'13:00',pkgDef:'half',name:'Couple',namePh:'e.g. Sam & Alex',groupsTitle:'Family groups'},
- family:{label:'Family session',noun:'session',start:'Session start',startDef:'16:00',pkgDef:'standard',name:'Family / client',namePh:'e.g. The Jones family',groupsTitle:'Groupings'},
- event:{label:'Event',noun:'event',start:'Start time',startDef:'18:00',pkgDef:'four',name:'Event / client',namePh:'e.g. Gwynedd Business Awards',groupsTitle:'Group photos'}
+ family:{label:'Family session',noun:'session',start:'Session start',startDef:'16:00',pkgDef:'everyday',name:'Family / client',namePh:'e.g. The Jones family',groupsTitle:'Groupings'},
+ event:{label:'Event',noun:'event',start:'Start time',startDef:'18:00',pkgDef:'two',name:'Event / client',namePh:'e.g. Gwynedd Business Awards',groupsTitle:'Group photos'}
 };
 var TPLS={wedding:TPL,
  family:{
-  mini:{label:'Mini session (30 min)',items:[[0,'Arrive, say hello, warm-up games',''],[5,'Whole family together','While everyone is fresh'],[12,'Each child on their own',''],[20,'Parents together',''],[25,'Play and movement','Walking, running, tickles'],[30,'Finish','']]},
-  standard:{label:'Standard session (1 hour)',items:[[0,'Arrive, say hello, warm-up games',''],[5,'Whole family together','While everyone is fresh'],[15,'Each child on their own',''],[25,'Siblings together',''],[35,'Parents together','Kids have a snack break'],[40,'Play and movement','Walking, running, tickles'],[50,'Each parent with the kids',''],[60,'Finish','']]},
-  extended:{label:'Extended session (2 hours)',items:[[0,'Arrive, say hello, warm-up games',''],[10,'Whole family together',''],[25,'Each child on their own',''],[40,'Siblings together',''],[50,'Break and snacks',''],[65,'Parents together',''],[75,'Play and movement',''],[90,'Second location or golden light',''],[110,'Each parent with the kids',''],[120,'Finish','']]}},
+  everyday:{label:'The Everyday Session – up to 1 hour (£125)',items:[[0,'Arrive, say hello, warm-up games',''],[5,'Whole family together','While everyone is fresh'],[15,'Each child on their own',''],[25,'Siblings together',''],[35,'Parents together','Kids have a snack break'],[40,'Play and movement','Walking, running, tickles'],[50,'Each parent with the kids',''],[60,'Finish','']]},
+  fullstory:{label:'The Full Story – up to 90 minutes (£225)',items:[[0,'Arrive, say hello, warm-up games',''],[5,'Whole family together','While everyone is fresh'],[15,'Each child on their own',''],[30,'Siblings together',''],[40,'Break and snacks',''],[45,'Parents together',''],[55,'Play and movement','Walking, running, tickles'],[70,'Each parent with the kids',''],[80,'Second spot or golden light',''],[90,'Finish','']]},
+  pet:{label:'Pet session (quoted)',items:[[0,'Arrive, let them sniff and settle',''],[10,'Portraits on the lead','Treats and squeaky toy at the ready'],[25,'Action and play','Running, fetch'],[40,'With their people',''],[50,'Calm close-ups',''],[60,'Finish','']]}},
  event:{
-  two:{label:'2 hours',items:[[-20,'Arrive, meet the organiser, check the room',''],[0,'Guests arriving, welcome',''],[30,'Key moment: speech or presentation',''],[60,'Group photo',''],[70,'Candids and networking',''],[120,'Coverage ends','']]},
-  four:{label:'4 hours',items:[[-30,'Arrive, meet the organiser, check the room',''],[-15,'Venue, branding and details',''],[0,'Guests arriving, welcome drinks',''],[45,'Speeches or presentations',''],[90,'Group and team photos',''],[105,'Meal or main programme',''],[180,'Awards or key moment',''],[220,'Candids and networking',''],[240,'Coverage ends','']]},
-  full:{label:'Full day (8 hours)',items:[[-30,'Arrive, meet the organiser, check the room',''],[-15,'Venue, branding and details',''],[0,'Registration and arrivals',''],[30,'Opening and first sessions',''],[150,'Lunch and networking',''],[210,'Afternoon sessions',''],[330,'Group and team photos',''],[360,'Closing, awards or key moment',''],[420,'Evening reception candids',''],[480,'Coverage ends','']]}}
+  two:{label:'2 hours (£220)',items:[[-20,'Arrive, meet the organiser, check the room',''],[0,'Guests arriving, welcome',''],[30,'Key moment: speech, set or presentation',''],[60,'Group photo',''],[70,'Candids and networking',''],[120,'Coverage ends','']]},
+  three:{label:'3 hours (£320)',items:[[-20,'Arrive, meet the organiser, check the room',''],[0,'Guests arriving, welcome',''],[30,'Speeches or first set',''],[75,'Group and team photos',''],[90,'Candids and networking',''],[120,'Key moment: awards or main act',''],[150,'Final candids',''],[180,'Coverage ends','']]},
+  four:{label:'4 hours (£420)',items:[[-30,'Arrive, meet the organiser, check the room',''],[-15,'Venue, branding and details',''],[0,'Guests arriving, welcome drinks',''],[45,'Speeches or presentations',''],[90,'Group and team photos',''],[105,'Meal or main programme',''],[180,'Awards or key moment',''],[220,'Candids and networking',''],[240,'Coverage ends','']]},
+  full:{label:'Full day, 8 hours (£820)',items:[[-30,'Arrive, meet the organiser, check the room',''],[-15,'Venue, branding and details',''],[0,'Registration and arrivals',''],[30,'Opening and first sessions',''],[150,'Lunch and networking',''],[210,'Afternoon sessions',''],[330,'Group and team photos',''],[360,'Closing, awards or key moment',''],[420,'Evening reception candids',''],[480,'Coverage ends','']]}}
 };
 function typeOf(w){return TYPES[w&&w.type]||TYPES.wedding}
-function groupsFor(type,a,b){
+function groupsFor(type,a,b,pkg){
+  if(type==='family'&&pkg==='pet')return [['On their own',''],['With each of their people',''],['Whole family with the pet','']];
   if(type==='family')return [['Whole family',''],['Each child on their own',''],['Siblings together',''],['Parents together',''],['Each parent with the kids',''],['Grandparents, if coming','']];
   if(type==='event')return [['Organisers',''],['Speakers and presenters',''],['Award winners',''],['Team photo',''],['VIPs and sponsors','']];
   return groupTpl(a,b);
@@ -155,9 +157,13 @@ function groupTpl(a,b){a=a||'Partner 1';b=b||'Partner 2';return [
 ['Couple with both families',''],['Couple with grandparents',''],['Wedding party',''],['Everyone','']]}
 var SHOTS=['Rings and details','Outfits and flowers','Entrance / walking in','Vows','Ring exchange','First kiss','Signing the register','Confetti','Grandparents with the couple','Couple portraits in best light','Room and table details','Cake','First dance'];
 var KIT=['Batteries charged (plus spares)','Memory cards formatted (plus spares)','Lenses cleaned','Flash and charged batteries','Lens cloth and rain cover','Umbrella','Printed timeline and group list','Venue address and parking checked','Water and snacks','Phone charged'];
-function afterTpl(type){
-  if(type==='family'){var df=+S.settings.familyDeliveryDays||14;return [['Back up the cards to two places',0],['Send a sneak peek',2],['Deliver the gallery',df],['Ask for a Google review',df+3],['Offer prints or an album',df+7],['Format the cards once the backups are checked',df+1]].sort(function(x,y){return x[1]-y[1]}).map(function(x){return {id:uid(),text:x[0],offset:x[1],done:false}})}
-  if(type==='event'){var de=+S.settings.eventDeliveryDays||21;return [['Back up the cards to two places',0],['Send a few images for same-week social media',2],['Deliver the gallery',de],['Ask for a Google review',de+3],['Format the cards once the backups are checked',de+1]].sort(function(x,y){return x[1]-y[1]}).map(function(x){return {id:uid(),text:x[0],offset:x[1],done:false}})}
+function afterTpl(type,pkg){
+  if(type==='family'){var df=+S.settings.familyDeliveryDays||14,L=[['Back up the cards to two places',0],['Send a sneak peek',2]];
+    if(pkg==='everyday')L=L.concat([['Send the proof gallery so they can choose their 15 favourites',Math.max(3,df-7)],['Offer the full gallery upgrade (£50)',Math.max(3,df-7)],['Edit and deliver their 15 favourites',df]]);
+    else L=L.concat([['Deliver the full gallery'+(pkg==='fullstory'?' (35+ photos)':''),df]]);
+    L=L.concat([['Ask for a Google review',df+3],['Offer prints',df+7],['Format the cards once the backups are checked',df+1]]);
+    return L.sort(function(x,y){return x[1]-y[1]}).map(function(x){return {id:uid(),text:x[0],offset:x[1],done:false}})}
+  if(type==='event'){var de=+S.settings.eventDeliveryDays||21;return [['Back up the cards to two places',0],['Send a few images for social media',2],['Deliver the gallery',de],['Ask for a Google review',de+3],['Format the cards once the backups are checked',de+1]].sort(function(x,y){return x[1]-y[1]}).map(function(x){return {id:uid(),text:x[0],offset:x[1],done:false}})}
   var d=+S.settings.deliveryDays||42;return [
 ['Back up the cards to two places',0],['Send the wedding previews (within 72 hours)',3],['Cull and edit the gallery',Math.max(3,d-7)],['Deliver the gallery',d],['Ask for a Google review',d+3],['Send the venue a few images (with credit)',d+7],['Write the blog post',d+14],['Format the cards once the backups are checked',d+1]
 ].sort(function(x,y){return x[1]-y[1]}).map(function(x){return {id:uid(),text:x[0],offset:x[1],done:false}})}
@@ -300,15 +306,15 @@ function b64(str){return btoa(unescape(encodeURIComponent(str)))}
 
 /* ---------- create ---------- */
 function makeWedding(f){
-  var ty=TYPES[f.type]?f.type:'wedding',T=TPLS[ty],sv=f.saved?V(f.saved):null,v=VENUES[+f.venue]||null,ab=names(f.couple),c=toMin(f.ceremony)||toMin(TYPES[ty].startDef),t=T[f.pkg]||T[TYPES[ty].pkgDef];
+  var ty=TYPES[f.type]?f.type:'wedding',T=TPLS[ty],sv=f.saved?V(f.saved):null,v=VENUES[+f.venue]||null,ab=names(f.couple),c=toMin(f.ceremony)||toMin(TYPES[ty].startDef),pk=T[f.pkg]?f.pkg:TYPES[ty].pkgDef,t=T[pk];
   var w={id:uid(),type:ty,couple:f.couple||'New booking',date:f.date||'',venueId:sv?sv.id:null,
     venue:sv?sv.name:(f.venueName||(v?v[0]:'')),lat:sv?sv.lat:(v?v[1]:null),lon:sv?sv.lon:(v?v[2]:null),
     pkg:f.pkg,notes:'',wet:'',created:Date.now(),alerts:{on:false,mins:10,golden:true},
     timeline:t.items.map(function(x){return {id:uid(),time:fromMin(c+x[0]),title:x[1],note:x[2],done:false}}),
-    groups:groupsFor(ty,ab[0],ab[1]).map(function(x){return {id:uid(),title:x[0],people:x[1],done:false}}),
+    groups:groupsFor(ty,ab[0],ab[1],pk).map(function(x){return {id:uid(),title:x[0],people:x[1],done:false}}),
     shots:(SHOTS_T[ty]||SHOTS).map(function(x){return {id:uid(),text:x,done:false}}),
     kit:(KIT_T[ty]||KIT).map(function(x){return {id:uid(),text:x,done:false}}),
-    after:afterTpl(ty),toAsk:[],
+    after:afterTpl(ty,pk),toAsk:[],
     contacts:contactsFor(ty,f.couple)};
   S.weddings.push(w);touch();return w;
 }
