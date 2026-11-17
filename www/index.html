@@ -100,12 +100,13 @@ function P(n){try{return window.Capacitor&&window.Capacitor.Plugins&&window.Capa
 var LN=P('LocalNotifications'),APP=P('App'),SHARE=P('Share'),FS=P('Filesystem');
 
 /* ---------- data ---------- */
-var DEF_SETTINGS={baseName:'Penygroes',baseLat:53.0560,baseLon:-4.2840,freeMiles:20,rate:0.75,hmrc:0.45,roadFactor:1.3,deliveryDays:21,familyDeliveryDays:14,eventDeliveryDays:21,groupTarget:20,questDays:14,planWeeks:6,balanceDays:30};
+var DEF_SETTINGS={baseName:'Penygroes',baseLat:53.0560,baseLon:-4.2840,freeMiles:20,rate:0.75,hmrc:0.45,roadFactor:1.3,deliveryDays:42,familyDeliveryDays:14,eventDeliveryDays:21,groupTarget:20,questDays:14,planWeeks:6,balanceDays:30};
 var S=null;
 try{S=JSON.parse(localStorage.getItem(LS)||'null')}catch(e){S=null}
 if(!S||!Array.isArray(S.weddings))S={v:1,updatedAt:0,weddings:[]};
 if(!Array.isArray(S.venues))S.venues=[];
 S.settings=Object.assign({},DEF_SETTINGS,S.settings||{});
+if(!S.settings.ver||S.settings.ver<2){if(+S.settings.deliveryDays===21)S.settings.deliveryDays=42;S.settings.ver=2}
 var ui={view:'home',id:null,tab:'day',edit:false,msg:'',arm:null,copyText:null,img:null,venueId:null,imp:null,sunT:null,live:false,heading:null,year:null,wxBusy:false};
 
 var VENUES=[
@@ -115,9 +116,9 @@ var VENUES=[
 ['Betws-y-Coed',53.0930,-3.8000],['Porthmadog',52.9280,-4.1330],['Dinas Dinlle',53.0830,-4.3350],['Rhosneigr',53.2290,-4.5080]
 ];
 var TPL={
-ceremony:{label:'Ceremony (about 2 hours)',items:[[-30,'Arrive, meet registrar, check light and rules',''],[-20,'Venue details and guests arriving',''],[-10,'Couple arrival / getting into position',''],[0,'Ceremony','Vows, rings, first kiss, signing'],[30,'Congratulations and confetti',''],[45,'Family groups','Have a helper gathering people'],[65,'Couple portraits',''],[90,'Candids and finish','']]},
-half:{label:'Half day (about 4 hours)',items:[[-60,'Arrive, venue and detail shots',''],[-40,'Guests arriving, candids',''],[-10,'Couple arrival / entrance',''],[0,'Ceremony','Vows, rings, first kiss, signing'],[30,'Congratulations and confetti',''],[45,'Family groups','6–8 combinations, about 20 min'],[65,'Couple portraits','25–30 min while the light is good'],[95,'Drinks reception candids',''],[120,'Call to meal / room details',''],[150,'Speeches or meal',''],[180,'Coverage ends','']]},
-full:{label:'Full day (about 8 hours)',items:[[-180,'Prep: getting ready, details, outfits',''],[-120,'Prep: other half of the couple',''],[-60,'Venue and ceremony room details',''],[-30,'Guests arriving',''],[-10,'Couple arrival / entrance',''],[0,'Ceremony','Vows, rings, first kiss, signing'],[30,'Congratulations and confetti',''],[45,'Family groups',''],[75,'Couple portraits',''],[105,'Drinks reception candids',''],[135,'Room details, call to meal',''],[150,'Wedding breakfast',''],[210,'Speeches',''],[255,'Cake cutting',''],[285,'First dance',''],[300,'Dance floor',''],[330,'Coverage ends','']]}
+ceremony:{label:'Ceremony – up to 2 hours (£350)',items:[[-30,'Arrive, meet registrar, check light and rules',''],[-20,'Venue details and guests arriving',''],[-10,'Couple arrival / getting into position',''],[0,'Ceremony','Vows, rings, first kiss, signing'],[30,'Congratulations and confetti',''],[45,'Family groups','Have a helper gathering people'],[65,'Couple portraits',''],[90,'Candids and finish','']]},
+half:{label:'Half Day – up to 4 hours (£650)',items:[[-60,'Arrive, venue and detail shots',''],[-40,'Guests arriving, candids',''],[-10,'Couple arrival / entrance',''],[0,'Ceremony','Vows, rings, first kiss, signing'],[30,'Congratulations and confetti',''],[45,'Family groups','6–8 combinations, about 20 min'],[65,'Couple portraits','25–30 min while the light is good'],[95,'Drinks reception candids',''],[120,'Call to meal / room details',''],[150,'Speeches or meal',''],[180,'Coverage ends','']]},
+full:{label:'Full Day – up to 10 hours (£1,250)',items:[[-210,'Prep: getting ready, details, outfits',''],[-150,'Prep: other half of the couple',''],[-60,'Venue and ceremony room details',''],[-30,'Guests arriving',''],[-10,'Couple arrival / entrance',''],[0,'Ceremony','Vows, rings, first kiss, signing'],[30,'Congratulations and confetti',''],[45,'Family groups',''],[75,'Couple portraits',''],[105,'Drinks reception candids',''],[135,'Room details, call to meal',''],[150,'Wedding breakfast',''],[210,'Speeches',''],[255,'Cake cutting',''],[285,'First dance',''],[300,'Dance floor and evening guests',''],[390,'Coverage ends','']]}
 };
 var TYPES={
  wedding:{label:'Wedding',noun:'wedding',start:'Ceremony time',startDef:'13:00',pkgDef:'half',name:'Couple',namePh:'e.g. Sam & Alex',groupsTitle:'Family groups'},
@@ -157,8 +158,8 @@ var KIT=['Batteries charged (plus spares)','Memory cards formatted (plus spares)
 function afterTpl(type){
   if(type==='family'){var df=+S.settings.familyDeliveryDays||14;return [['Back up the cards to two places',0],['Send a sneak peek',2],['Deliver the gallery',df],['Ask for a Google review',df+3],['Offer prints or an album',df+7],['Format the cards once the backups are checked',df+1]].sort(function(x,y){return x[1]-y[1]}).map(function(x){return {id:uid(),text:x[0],offset:x[1],done:false}})}
   if(type==='event'){var de=+S.settings.eventDeliveryDays||21;return [['Back up the cards to two places',0],['Send a few images for same-week social media',2],['Deliver the gallery',de],['Ask for a Google review',de+3],['Format the cards once the backups are checked',de+1]].sort(function(x,y){return x[1]-y[1]}).map(function(x){return {id:uid(),text:x[0],offset:x[1],done:false}})}
-  var d=+S.settings.deliveryDays||21;return [
-['Back up the cards to two places',0],['Send a few sneak peeks',2],['Cull and edit the gallery',Math.max(3,d-7)],['Deliver the gallery',d],['Ask for a Google review',d+3],['Send the venue a few images (with credit)',d+7],['Write the blog post',d+14],['Format the cards once the backups are checked',d+1]
+  var d=+S.settings.deliveryDays||42;return [
+['Back up the cards to two places',0],['Send the wedding previews (within 72 hours)',3],['Cull and edit the gallery',Math.max(3,d-7)],['Deliver the gallery',d],['Ask for a Google review',d+3],['Send the venue a few images (with credit)',d+7],['Write the blog post',d+14],['Format the cards once the backups are checked',d+1]
 ].sort(function(x,y){return x[1]-y[1]}).map(function(x){return {id:uid(),text:x[0],offset:x[1],done:false}})}
 
 /* ---------- helpers ---------- */
