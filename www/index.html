@@ -139,6 +139,7 @@ function migrate(w){
   if(!Array.isArray(w.after))w.after=afterTpl();
   ['timeline','groups','shots','kit','contacts'].forEach(function(k){if(!Array.isArray(w[k]))w[k]=[]});
   if(w.wet==null)w.wet='';
+  if(!Array.isArray(w.toAsk))w.toAsk=[];
   return w;
 }
 S.weddings.forEach(migrate);
@@ -247,7 +248,7 @@ function makeWedding(f){
     groups:groupTpl(ab[0],ab[1]).map(function(x){return {id:uid(),title:x[0],people:x[1],done:false}}),
     shots:SHOTS.map(function(x){return {id:uid(),text:x,done:false}}),
     kit:KIT.map(function(x){return {id:uid(),text:x,done:false}}),
-    after:afterTpl(),
+    after:afterTpl(),toAsk:[],
     contacts:[{id:uid(),role:'Couple',name:f.couple||'',phone:''},{id:uid(),role:'Venue coordinator',name:'',phone:''},{id:uid(),role:'Group photo helper',name:'',phone:''}]};
   S.weddings.push(w);touch();return w;
 }
@@ -332,7 +333,7 @@ function parseQuestionnaire(text,booking){
     if(!cur){cur={q:'',kind:null,a:[]};blocks.push(cur)}
     cur.a.push(l);
   });
-  var R={contacts:[],timeline:[],groups:[],shots:[],notes:[],date:null,wet:''},seenPhone={},bookingName='';
+  var R={contacts:[],timeline:[],groups:[],shots:[],notes:[],date:null,wet:'',unanswered:[]},seenPhone={},bookingName='';
   function short(q){return String(q||'').replace(/\?.*$/,'?').replace(/\s+/g,' ').trim()}
   function note(b,body){var t=body.join('\n').trim();if(t&&!noAns(t))R.notes.push(b.q?short(b.q)+'\n'+t:t)}
   function addContact(line,role,fallbackName){
@@ -375,6 +376,7 @@ function parseQuestionnaire(text,booking){
   }
   blocks.forEach(function(b){
     var body=b.a.filter(function(l){return !noAns(l)});
+    if(b.kind&&b.kind!=='booking'&&!b.a.join('').trim()){R.unanswered.push(short(b.q));return}
     switch(b.kind){
       case 'booking':bookingName=clean(body.join(' '));return;
       case 'datetime':
@@ -508,12 +510,12 @@ function rNew(){
 function tabsHtml(w){
   function c(a){return a.filter(done).length+'/'+a.length}
   var t=todayStr(),late=w.date&&w.after.some(function(x){return !x.done&&addDays(w.date,+x.offset||0)<=t});
-  var T=[['day','Day',c(w.timeline)],['groups','Groups',c(w.groups)],['shots','Shots',c(w.shots)],['people','People',''],['venue','Venue',''],['kit','Kit',c(w.kit)],['after','After',c(w.after)],['notes','Notes','']];
+  var T=[['day','Day',c(w.timeline)],['groups','Groups',c(w.groups)],['shots','Shots',c(w.shots)],['people','People',''],['venue','Venue',''],['kit','Kit',c(w.kit)],['after','After',c(w.after)],['ask','To ask',w.toAsk.length?w.toAsk.filter(function(x){return !x.done}).length+' left':''],['notes','Notes','']];
   return '<div class="tabs">'+T.map(function(x){return '<button class="tab'+(ui.tab===x[0]?' on':'')+'" data-act="tab" data-tab="'+x[0]+'">'+x[1]+(x[2]?'<span class="n">'+x[2]+'</span>':'')+(x[0]==='after'&&late?'<span class="dot"></span>':'')+'</button>'}).join('')+'</div>';
 }
 function rWed(){
   var w=W(),dd=daysUntil(w.date),l=loc(w);
-  var noEdit=ui.tab==='venue'||ui.tab==='notes';
+  var noEdit=ui.tab==='venue'||ui.tab==='notes'||ui.tab==='ask';
   var h=msg()+'<div class="row between" style="margin:4px 0 6px">'+back()+(noEdit?'':'<button class="'+(ui.edit?'primary':'')+'" data-act="edit">'+(ui.edit?'Done':'Edit')+'</button>')+'</div>';
   h+='<h1>'+esc(w.couple)+'</h1><div class="muted" style="margin:2px 0 14px">'+esc(niceDate(w.date,true))+(l.name?' · '+esc(l.name):'')+(dd!=null&&dd>0?' · in '+dd+' day'+(dd===1?'':'s'):'')+'</div>';
   h+=tabsHtml(w);
@@ -522,6 +524,7 @@ function rWed(){
   else if(ui.tab==='shots')h+=rList(w,'shots');
   else if(ui.tab==='kit')h+=rList(w,'kit');
   else if(ui.tab==='after')h+=rAfter(w);
+  else if(ui.tab==='ask')h+=rAsk(w);
   else if(ui.tab==='people')h+=rPeople(w);
   else if(ui.tab==='venue')h+=rVenueTab(w);
   else h+=rNotes(w);
@@ -687,6 +690,54 @@ function rAfter(w){
   }
   return h+'</div>';
 }
+function rAsk(w){
+  var open=w.toAsk.filter(function(x){return !x.done}),h='<div class="card"><div class="row between"><h3>Still to find out</h3><span class="small muted">'+open.length+' of '+w.toAsk.length+' left</span></div><div class="small muted" style="margin:4px 0 8px">Questions left blank in the questionnaire, plus anything you add. Type the answer when you get it.</div>';
+  h+=w.toAsk.length?w.toAsk.map(function(x){return '<div class="item'+(x.done?' done':'')+'" style="align-items:flex-start"><button class="chk'+(x.done?' on':'')+'" data-act="tick" data-k="toAsk" data-i="'+x.id+'" aria-label="Done"></button><div class="grow"><div class="txt">'+esc(x.q)+'</div><textarea data-k="toAsk" data-i="'+x.id+'" data-f="answer" placeholder="Answer" style="min-height:44px;margin-top:6px">'+esc(x.answer||'')+'</textarea></div><button class="x" data-act="del" data-k="toAsk" data-i="'+x.id+'" aria-label="Remove">✕</button></div>'}).join(''):'<div class="empty">Nothing to find out. Questions the couple leave blank in the questionnaire will appear here.</div>';
+  h+='<div class="row" style="margin-top:8px"><input id="newq" placeholder="Add a question" class="grow"><button data-act="addq">Add</button></div></div>';
+  if(w.toAsk.length)h+='<div class="three"><button data-act="askmsg"'+(open.length?'':' disabled')+'>Message the couple</button><button data-act="askpdf">Save as PDF</button></div>';
+  if(ui.pdfUrl)h+='<p class="small muted">Your PDF is ready: <a href="'+ui.pdfUrl+'" download="'+esc(ui.pdfName)+'">'+esc(ui.pdfName)+'</a></p>';
+  if(ui.copyText!=null)h+='<p class="small muted">Couldn’t copy automatically, so select the text below and copy it:</p><pre class="copy">'+esc(ui.copyText)+'</pre>';
+  return h;
+}
+function askMessage(w){
+  var first=names(w.couple)[0]||'there',open=w.toAsk.filter(function(x){return !x.done});
+  return 'Hi '+first+',\n\nThank you for filling in the questionnaire. There are a few things I still need to know before '+(w.date?niceDate(w.date,true).replace(/^\w+ /,''):'the day')+':\n\n'+open.map(function(x,i){return (i+1)+'. '+x.q}).join('\n')+'\n\nIf any don’t apply, just let me know.\n\nThanks,\nAnthony';
+}
+var pdfLibP=null;
+function loadPdfLib(){
+  if(window.PDFLib)return Promise.resolve(window.PDFLib);
+  if(!pdfLibP)pdfLibP=new Promise(function(res,rej){var sc=document.createElement('script');sc.src='vendor/pdf-lib.min.js';sc.onload=function(){res(window.PDFLib)};sc.onerror=function(){pdfLibP=null;rej(new Error('Couldn’t load the PDF maker'))};document.head.appendChild(sc)});
+  return pdfLibP;
+}
+function pdfSafe(t){return String(t||'').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/–|—/g,'-').replace(/·/g,'-').replace(/…/g,'...').replace(/[^\x09\x0a\x0d\x20-\x7e£éèêâôûîïüöäñç]/g,'')}
+function askPdf(w){
+  return loadPdfLib().then(function(L){
+    return L.PDFDocument.create().then(function(doc){
+      return Promise.all([doc.embedFont(L.StandardFonts.Helvetica),doc.embedFont(L.StandardFonts.HelveticaBold),doc.embedFont(L.StandardFonts.TimesRomanBold)]).then(function(f){
+        var reg=f[0],bold=f[1],serif=f[2],W0=595.28,H0=841.89,M=56,page=doc.addPage([W0,H0]),y=H0-M;
+        var ink=L.rgb(0.1,0.1,0.1),muted=L.rgb(0.43,0.42,0.39),gold=L.rgb(0.66,0.51,0.25),line=L.rgb(0.85,0.82,0.77);
+        function np(){page=doc.addPage([W0,H0]);y=H0-M}
+        function wrap(t,font,size,max){var out=[];String(t).split('\n').forEach(function(par){var words=par.split(/\s+/),cur='';words.forEach(function(wd){var tr=cur?cur+' '+wd:wd;if(font.widthOfTextAtSize(tr,size)>max&&cur){out.push(cur);cur=wd}else cur=tr});out.push(cur)});return out}
+        function text(t,font,size,color,x,max){wrap(pdfSafe(t),font,size,max||W0-2*M-(x||0)).forEach(function(l){if(y<M+size)np();page.drawText(l,{x:M+(x||0),y:y-size,size:size,font:font,color:color});y-=size*1.35})}
+        var lc=loc(w);
+        text('Still to find out',serif,26,ink);y-=4;
+        text(w.couple+(w.date?'  -  '+niceDate(w.date,true):'')+(lc.name?'  -  '+lc.name:''),reg,11,muted);y-=6;
+        page.drawRectangle({x:M,y:y-2,width:60,height:2,color:gold});y-=20;
+        var open=w.toAsk.filter(function(x){return !x.done}),done=w.toAsk.filter(function(x){return x.done||x.answer});
+        if(!open.length){text('Everything has been answered.',reg,12,muted);y-=10}
+        open.forEach(function(x,i){
+          if(y<M+120)np();
+          text((i+1)+'.  '+x.q,bold,12,ink);y-=4;
+          if(x.answer){text(x.answer,reg,11,ink,18);y-=10}
+          else{for(var k=0;k<3;k++){y-=22;page.drawLine({start:{x:M+18,y:y},end:{x:W0-M,y:y},thickness:0.6,color:line})}y-=18}
+        });
+        var ans=w.toAsk.filter(function(x){return x.done&&x.answer});
+        if(ans.length){y-=8;if(y<M+80)np();text('Answered',serif,18,ink);y-=6;ans.forEach(function(x){if(y<M+60)np();text(x.q,bold,11,ink);text(x.answer,reg,11,muted,0);y-=10})}
+        return doc.saveAsBase64();
+      });
+    });
+  });
+}
 function rPeople(w){
   var h='<div class="card"><h3 style="margin-bottom:6px">Contacts</h3>';
   if(ui.edit){
@@ -753,6 +804,7 @@ function rImport(){
   h+=sec('groups','Family groups',function(x){return esc(x.title)+(x.people?'<div class="small muted">'+esc(x.people)+'</div>':'')},'Replace the template groups');
   h+=sec('shots','Must-have shots',function(x){return esc(x.text)});
   if(R.wet){n++;h+='<div class="card"><div class="row between"><h3>Wet weather plan</h3></div><label class="sel"><input type="checkbox" data-wetpick="1" style="width:auto;min-height:0;margin-top:4px"'+(R.wetOff?'':' checked')+'><div class="grow small" style="white-space:pre-wrap">'+esc(R.wet)+'</div></label></div>'}
+  if(R.unanswered.length){h+='<div class="card"><div class="row between"><h3>Still to find out</h3><span class="small muted">'+R.unanswered.length+'</span></div><div class="small muted" style="margin:4px 0 6px">Left blank in the questionnaire. These go on the wedding\u2019s To ask tab.</div>'+R.unanswered.map(function(q,i){n++;return '<div class="sel"><input type="checkbox" data-unpick="'+i+'" style="width:auto;min-height:0;margin-top:4px"'+(R.unOff&&R.unOff[i]?'':' checked')+'><div class="grow">'+esc(q)+'</div></div>'}).join('')+'</div>'}
   h+=sec('notes','Notes',function(x){return '<div style="white-space:pre-wrap" class="small">'+esc(x.text)+'</div>'});
   if(!n)h+='<div class="card empty">Nothing recognisable was found. Try copying the whole page of answers, including the questions.</div>';
   h+='<div class="three"><button data-act="impback">Back</button><button class="primary" data-act="impadd"'+(n?'':' disabled')+'>Add selected</button></div>';
@@ -863,7 +915,7 @@ app.addEventListener('click',function(ev){
     S.weddings.forEach(migrate);ui.arm=null;touch();ui.view='home';ui.msg='Restored '+S.weddings.length+' wedding'+(S.weddings.length===1?'':'s')+'.';return render();
   }
   if(!w)return;
-  if(a==='tab'){ui.tab=b.dataset.tab;ui.copyText=null;ui.img=null;if(ui.tab==='venue'||ui.tab==='notes')ui.edit=false;if(ui.tab!=='day'){ui.live=false;stopLive()}return render()}
+  if(a==='tab'){ui.tab=b.dataset.tab;ui.copyText=null;ui.img=null;ui.pdfUrl=null;if(ui.tab==='venue'||ui.tab==='notes')ui.edit=false;if(ui.tab!=='day'){ui.live=false;stopLive()}return render()}
   if(a==='edit'){if(ui.edit)sortTimeline(w);ui.edit=!ui.edit;ui.img=null;return render()}
   if(a==='alerts'){
     if(w.alerts.on){w.alerts.on=false;touch();return render()}
@@ -909,6 +961,17 @@ app.addEventListener('click',function(ev){
   }
   if(a==='unlink'){var uv=V(w.venueId);if(uv){w.venue=uv.name;w.lat=uv.lat;w.lon=uv.lon}w.venueId=null;persist();return render()}
   if(a==='pickpdf'){var fi=document.getElementById('qpdf');fi.value='';fi.click();return}
+  if(a==='addq'){var nq=(document.getElementById('newq')||{}).value||'';if(!nq.trim())return;w.toAsk.push({id:uid(),q:nq.trim(),answer:'',done:false});touch();return render()}
+  if(a==='askmsg')return shareText('Questions for '+w.couple,askMessage(w));
+  if(a==='askpdf'){
+    ui.pdfUrl=null;ui.msg='Making the PDF\u2026';render();
+    return askPdf(w).then(function(b64){
+      ui.msg='';var fn='To ask - '+w.couple.replace(/[^\w &-]/g,'')+'.pdf';
+      var p=shareFile(fn,b64,'application/pdf','Still to find out - '+w.couple);
+      if(!p){ui.pdfUrl='data:application/pdf;base64,'+b64;ui.pdfName=fn}
+      render();
+    }).catch(function(e){ui.msg='Couldn\u2019t make the PDF: '+(e&&e.message||e);render()});
+  }
   if(a==='import'){ui.view='import';ui.imp=null;ui.msg='';window.scrollTo(0,0);return render()}
   if(a==='parse'){
     var txt=(document.getElementById('qtext')||{}).value||'';
@@ -926,9 +989,10 @@ app.addEventListener('click',function(ev){
     var tl=pick('timeline');if(tl.length){if(R2.rep_timeline)w.timeline=[];tl.forEach(function(x){if(w.timeline.some(function(y){return y.time===x.time}))return;w.timeline.push({id:uid(),time:x.time,title:x.title,note:'',done:false})});sortTimeline(w)}
     var gr=pick('groups');if(gr.length){if(R2.rep_groups)w.groups=[];gr.forEach(function(x){w.groups.push({id:uid(),title:x.title,people:x.people,done:false})})}
     pick('shots').forEach(function(x){w.shots.push({id:uid(),text:x.text,done:false})});
+    R2.unanswered.forEach(function(q,i){if(R2.unOff&&R2.unOff[i])return;if(w.toAsk.some(function(x){return x.q===q}))return;w.toAsk.push({id:uid(),q:q,answer:'',done:false})});
     if(R2.wet&&!R2.wetOff)w.wet=(w.wet?w.wet+'\n\n':'')+R2.wet;
     var nt=pick('notes');if(nt.length)w.notes=(w.notes?w.notes+'\n\n':'')+nt.map(function(x){return x.text}).join('\n\n');
-    ui.imp=null;ui.view='wed';ui.tab='day';ui.msg='Added from the questionnaire. Check the People, Groups and Notes tabs.';touch();window.scrollTo(0,0);return render();
+    ui.imp=null;ui.view='wed';ui.tab='day';ui.msg='Added from the questionnaire. Check the People, Groups and Notes tabs'+(w.toAsk.some(function(x){return !x.done})?', and To ask for what\u2019s still missing.':'.');touch();window.scrollTo(0,0);return render();
   }
   if(a==='delw'){
     if(ui.arm!=='delw'){ui.arm='delw';return render()}
@@ -948,6 +1012,7 @@ app.addEventListener('change',function(ev){
     persist();if(f==='area'||f==='name'||f==='lat'||f==='lon')render();return;
   }
   if(el.dataset.pick&&ui.imp){ui.imp[el.dataset.pick][+el.dataset.ix].off=!el.checked;return}
+  if(el.dataset.unpick!=null&&ui.imp){ui.imp.unOff=ui.imp.unOff||{};ui.imp.unOff[+el.dataset.unpick]=!el.checked;return}
   if(el.dataset.wetpick&&ui.imp){ui.imp.wetOff=!el.checked;return}
   if(el.dataset.rep&&ui.imp){ui.imp['rep_'+el.dataset.rep]=el.checked;return}
   var w=W();if(!w)return;
@@ -981,6 +1046,7 @@ document.getElementById('qpdf').addEventListener('change',function(ev){
 app.addEventListener('input',function(ev){
   var el=ev.target,w=W();
   if(w&&(el.dataset.w==='notes'||el.dataset.w==='wet')){w[el.dataset.w]=el.value;persist();return}
+  if(w&&el.dataset.k==='toAsk'&&el.dataset.f==='answer'){var it=find(w,'toAsk',el.dataset.i);if(it){it.answer=el.value;persist()}return}
   if(el.dataset.vf&&el.tagName==='TEXTAREA'){var v=V(ui.venueId);if(v){v[el.dataset.vf]=el.value;persist()}}
 });
 app.addEventListener('submit',function(ev){
