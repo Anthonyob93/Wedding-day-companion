@@ -1,6 +1,6 @@
 # Wedding Day
 
-A wedding day companion app for Android: timeline with alerts, family group list, must-have shots, kit check, contacts and sunset / golden hour times. Everything is stored on the phone; use **Backup** in the app to keep a copy.
+A shoot-day companion app for Android, for weddings, family sessions and events: timeline with alerts, group lists, must-have shots, kit check, contacts, venues with photos, weather, sunset / golden hour, questionnaire import, plan PDFs, calendar links and automatic backups. Everything is stored on the phone; use **Backup** in the app to keep a copy.
 
 ## Install or update
 

@@ -76,10 +76,21 @@ pre.copy{white-space:pre-wrap;font:13px/1.4 ui-monospace,monospace;background:#f
 img.preview{width:100%;border-radius:10px;border:1px solid var(--line)}
 label.btn-file{display:block}
 .gold-btn{display:block;text-align:center;background:var(--gold);color:#fff;border-radius:10px;padding:11px 14px;font-weight:500;cursor:pointer}
+.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.thumbs .ph{position:relative}
+.thumbs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block;cursor:pointer}
+.thumbs .cap{font-size:12px;color:var(--muted);margin-top:2px;min-height:0;padding:4px 6px}
+.thumbs .rm{position:absolute;top:4px;right:4px;min-height:28px;width:28px;padding:0;border-radius:50%;background:rgba(255,255,255,.9);color:var(--warn)}
+img.tn{width:52px;height:52px;object-fit:cover;border-radius:8px;flex:none;cursor:pointer}
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+.viewer img{max-width:100%;max-height:82vh;border-radius:6px}
+.viewer .vc{color:#fff;margin-top:10px;text-align:center;font-size:14px}
+.viewer button{position:absolute;top:calc(12px + env(safe-area-inset-top));right:12px;background:#fff}
+a.btn-a{display:inline-block;border:1px solid var(--line);border-radius:10px;padding:8px 14px;color:var(--ink);text-decoration:none;font-weight:500;background:#fff}
 table.log{width:100%;border-collapse:collapse;font-size:14px}
 table.log td,table.log th{padding:8px 4px;border-top:1px solid var(--line);text-align:left}
 table.log td.n,table.log th.n{text-align:right;font-variant-numeric:tabular-nums}
-</style></head><body><div id="app"></div><input type="file" accept="application/pdf,.pdf" id="qpdf" style="position:fixed;left:-9999px;width:1px;height:1px;opacity:0" tabindex="-1" aria-hidden="true"><script>
+</style></head><body><div id="app"></div><input type="file" accept=".json,application/json,text/plain" id="jsonpick" style="position:fixed;left:-9999px;width:1px;height:1px;opacity:0" tabindex="-1" aria-hidden="true"><input type="file" accept="image/*" id="imgpick" style="position:fixed;left:-9999px;width:1px;height:1px;opacity:0" tabindex="-1" aria-hidden="true"><input type="file" accept="application/pdf,.pdf" id="qpdf" style="position:fixed;left:-9999px;width:1px;height:1px;opacity:0" tabindex="-1" aria-hidden="true"><script>
 (function(){
 'use strict';
 var LS='obwd-v1';
@@ -89,7 +100,7 @@ function P(n){try{return window.Capacitor&&window.Capacitor.Plugins&&window.Capa
 var LN=P('LocalNotifications'),APP=P('App'),SHARE=P('Share'),FS=P('Filesystem');
 
 /* ---------- data ---------- */
-var DEF_SETTINGS={baseName:'Penygroes',baseLat:53.0560,baseLon:-4.2840,freeMiles:20,rate:0.75,hmrc:0.45,roadFactor:1.3,deliveryDays:21,groupTarget:20};
+var DEF_SETTINGS={baseName:'Penygroes',baseLat:53.0560,baseLon:-4.2840,freeMiles:20,rate:0.75,hmrc:0.45,roadFactor:1.3,deliveryDays:21,familyDeliveryDays:14,eventDeliveryDays:21,groupTarget:20,questDays:14,planWeeks:6,balanceDays:30};
 var S=null;
 try{S=JSON.parse(localStorage.getItem(LS)||'null')}catch(e){S=null}
 if(!S||!Array.isArray(S.weddings))S={v:1,updatedAt:0,weddings:[]};
@@ -108,12 +119,45 @@ ceremony:{label:'Ceremony (about 2 hours)',items:[[-30,'Arrive, meet registrar, 
 half:{label:'Half day (about 4 hours)',items:[[-60,'Arrive, venue and detail shots',''],[-40,'Guests arriving, candids',''],[-10,'Couple arrival / entrance',''],[0,'Ceremony','Vows, rings, first kiss, signing'],[30,'Congratulations and confetti',''],[45,'Family groups','6–8 combinations, about 20 min'],[65,'Couple portraits','25–30 min while the light is good'],[95,'Drinks reception candids',''],[120,'Call to meal / room details',''],[150,'Speeches or meal',''],[180,'Coverage ends','']]},
 full:{label:'Full day (about 8 hours)',items:[[-180,'Prep: getting ready, details, outfits',''],[-120,'Prep: other half of the couple',''],[-60,'Venue and ceremony room details',''],[-30,'Guests arriving',''],[-10,'Couple arrival / entrance',''],[0,'Ceremony','Vows, rings, first kiss, signing'],[30,'Congratulations and confetti',''],[45,'Family groups',''],[75,'Couple portraits',''],[105,'Drinks reception candids',''],[135,'Room details, call to meal',''],[150,'Wedding breakfast',''],[210,'Speeches',''],[255,'Cake cutting',''],[285,'First dance',''],[300,'Dance floor',''],[330,'Coverage ends','']]}
 };
+var TYPES={
+ wedding:{label:'Wedding',noun:'wedding',start:'Ceremony time',startDef:'13:00',pkgDef:'half',name:'Couple',namePh:'e.g. Sam & Alex',groupsTitle:'Family groups'},
+ family:{label:'Family session',noun:'session',start:'Session start',startDef:'16:00',pkgDef:'standard',name:'Family / client',namePh:'e.g. The Jones family',groupsTitle:'Groupings'},
+ event:{label:'Event',noun:'event',start:'Start time',startDef:'18:00',pkgDef:'four',name:'Event / client',namePh:'e.g. Gwynedd Business Awards',groupsTitle:'Group photos'}
+};
+var TPLS={wedding:TPL,
+ family:{
+  mini:{label:'Mini session (30 min)',items:[[0,'Arrive, say hello, warm-up games',''],[5,'Whole family together','While everyone is fresh'],[12,'Each child on their own',''],[20,'Parents together',''],[25,'Play and movement','Walking, running, tickles'],[30,'Finish','']]},
+  standard:{label:'Standard session (1 hour)',items:[[0,'Arrive, say hello, warm-up games',''],[5,'Whole family together','While everyone is fresh'],[15,'Each child on their own',''],[25,'Siblings together',''],[35,'Parents together','Kids have a snack break'],[40,'Play and movement','Walking, running, tickles'],[50,'Each parent with the kids',''],[60,'Finish','']]},
+  extended:{label:'Extended session (2 hours)',items:[[0,'Arrive, say hello, warm-up games',''],[10,'Whole family together',''],[25,'Each child on their own',''],[40,'Siblings together',''],[50,'Break and snacks',''],[65,'Parents together',''],[75,'Play and movement',''],[90,'Second location or golden light',''],[110,'Each parent with the kids',''],[120,'Finish','']]}},
+ event:{
+  two:{label:'2 hours',items:[[-20,'Arrive, meet the organiser, check the room',''],[0,'Guests arriving, welcome',''],[30,'Key moment: speech or presentation',''],[60,'Group photo',''],[70,'Candids and networking',''],[120,'Coverage ends','']]},
+  four:{label:'4 hours',items:[[-30,'Arrive, meet the organiser, check the room',''],[-15,'Venue, branding and details',''],[0,'Guests arriving, welcome drinks',''],[45,'Speeches or presentations',''],[90,'Group and team photos',''],[105,'Meal or main programme',''],[180,'Awards or key moment',''],[220,'Candids and networking',''],[240,'Coverage ends','']]},
+  full:{label:'Full day (8 hours)',items:[[-30,'Arrive, meet the organiser, check the room',''],[-15,'Venue, branding and details',''],[0,'Registration and arrivals',''],[30,'Opening and first sessions',''],[150,'Lunch and networking',''],[210,'Afternoon sessions',''],[330,'Group and team photos',''],[360,'Closing, awards or key moment',''],[420,'Evening reception candids',''],[480,'Coverage ends','']]}}
+};
+function typeOf(w){return TYPES[w&&w.type]||TYPES.wedding}
+function groupsFor(type,a,b){
+  if(type==='family')return [['Whole family',''],['Each child on their own',''],['Siblings together',''],['Parents together',''],['Each parent with the kids',''],['Grandparents, if coming','']];
+  if(type==='event')return [['Organisers',''],['Speakers and presenters',''],['Award winners',''],['Team photo',''],['VIPs and sponsors','']];
+  return groupTpl(a,b);
+}
+var SHOTS_T={family:['Whole family, everyone looking','Candid play and laughter','Walking together','Hugs and cuddles','Each child close-up','Hands and little details','Parents together','A wide shot with the location'],
+ event:['Venue and room set-up','Branding and signage','Speakers in action','Audience reactions','Award handovers','Networking candids','Sponsor logos','Team photo']};
+var KIT_T={family:['Batteries charged (plus spares)','Memory cards formatted (plus spares)','Lenses cleaned','Bubbles, toy or puppet for little ones','Picnic blanket','Wet wipes and snacks','Location and parking checked','Phone charged'],
+ event:['Batteries charged (plus spares)','Memory cards formatted (plus spares)','Flash, diffuser and spare batteries','Lenses cleaned','Run sheet and shot list printed','Organiser’s mobile number','Venue access and parking checked','Phone charged']};
+function contactsFor(type,name){
+  if(type==='family')return [{id:uid(),role:'Client',name:name||'',phone:''}];
+  if(type==='event')return [{id:uid(),role:'Organiser',name:'',phone:''},{id:uid(),role:'Venue contact',name:'',phone:''},{id:uid(),role:'Approves extra time',name:'',phone:''}];
+  return [{id:uid(),role:'Couple',name:name||'',phone:''},{id:uid(),role:'Venue coordinator',name:'',phone:''},{id:uid(),role:'Group photo helper',name:'',phone:''}];
+}
 function groupTpl(a,b){a=a||'Partner 1';b=b||'Partner 2';return [
 ['Couple with '+a+"'s parents",''],['Couple with '+a+"'s immediate family",''],['Couple with '+b+"'s parents",''],['Couple with '+b+"'s immediate family",''],
 ['Couple with both families',''],['Couple with grandparents',''],['Wedding party',''],['Everyone','']]}
 var SHOTS=['Rings and details','Outfits and flowers','Entrance / walking in','Vows','Ring exchange','First kiss','Signing the register','Confetti','Grandparents with the couple','Couple portraits in best light','Room and table details','Cake','First dance'];
 var KIT=['Batteries charged (plus spares)','Memory cards formatted (plus spares)','Lenses cleaned','Flash and charged batteries','Lens cloth and rain cover','Umbrella','Printed timeline and group list','Venue address and parking checked','Water and snacks','Phone charged'];
-function afterTpl(){var d=+S.settings.deliveryDays||21;return [
+function afterTpl(type){
+  if(type==='family'){var df=+S.settings.familyDeliveryDays||14;return [['Back up the cards to two places',0],['Send a sneak peek',2],['Deliver the gallery',df],['Ask for a Google review',df+3],['Offer prints or an album',df+7],['Format the cards once the backups are checked',df+1]].sort(function(x,y){return x[1]-y[1]}).map(function(x){return {id:uid(),text:x[0],offset:x[1],done:false}})}
+  if(type==='event'){var de=+S.settings.eventDeliveryDays||21;return [['Back up the cards to two places',0],['Send a few images for same-week social media',2],['Deliver the gallery',de],['Ask for a Google review',de+3],['Format the cards once the backups are checked',de+1]].sort(function(x,y){return x[1]-y[1]}).map(function(x){return {id:uid(),text:x[0],offset:x[1],done:false}})}
+  var d=+S.settings.deliveryDays||21;return [
 ['Back up the cards to two places',0],['Send a few sneak peeks',2],['Cull and edit the gallery',Math.max(3,d-7)],['Deliver the gallery',d],['Ask for a Google review',d+3],['Send the venue a few images (with credit)',d+7],['Write the blog post',d+14],['Format the cards once the backups are checked',d+1]
 ].sort(function(x,y){return x[1]-y[1]}).map(function(x){return {id:uid(),text:x[0],offset:x[1],done:false}})}
 
@@ -135,8 +179,9 @@ function sortTimeline(w){w.timeline.sort(function(a,b){return (toMin(a.time)||0)
 function money(n){return '£'+(Math.round(n*100)/100).toFixed(2)}
 function done(x){return x.done}
 function migrate(w){
+  if(!w.type)w.type='wedding';
   if(!w.alerts)w.alerts={on:false,mins:10,golden:true};
-  if(!Array.isArray(w.after))w.after=afterTpl();
+  if(!Array.isArray(w.after))w.after=afterTpl(w.type);
   ['timeline','groups','shots','kit','contacts'].forEach(function(k){if(!Array.isArray(w[k]))w[k]=[]});
   if(w.wet==null)w.wet='';
   if(!Array.isArray(w.toAsk))w.toAsk=[];
@@ -194,7 +239,21 @@ function milesOneWay(w){
 function travelCharge(m){var s=S.settings;return Math.max(0,m-(+s.freeMiles||0))*(+s.rate||0)*2}
 
 /* ---------- storage + alerts ---------- */
-function persist(){S.updatedAt=Date.now();try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){ui.msg='Couldn’t save to the phone’s storage. Share a backup to be safe.'}}
+function persist(){S.updatedAt=Date.now();try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){ui.msg='Couldn’t save to the phone’s storage. Share a backup to be safe.'}autoBackup()}
+var AB='obwd-autobackup',abT=null,BDIR='Wedding Day';
+function abInfo(){try{return JSON.parse(localStorage.getItem(AB)||'{}')||{}}catch(e){return {}}}
+function abSave(i){try{localStorage.setItem(AB,JSON.stringify(i))}catch(e){}}
+function autoBackup(){if(!FS)return;clearTimeout(abT);abT=setTimeout(function(){doAutoBackup(false)},6000)}
+function doAutoBackup(force){
+  if(!FS)return Promise.resolve(false);
+  var info=abInfo(),json=JSON.stringify(S),now=Date.now();
+  var jobs=[FS.writeFile({path:BDIR+'/wedding-day-backup-latest.json',data:json,directory:'DOCUMENTS',encoding:'utf8',recursive:true})];
+  var weekly=force||!info.weekly||now-info.weekly>7*86400000;
+  if(weekly)jobs.push(FS.writeFile({path:BDIR+'/wedding-day-backup-'+todayStr()+'.json',data:json,directory:'DOCUMENTS',encoding:'utf8',recursive:true}));
+  return Promise.all(jobs).then(function(){info.last=now;info.err='';if(weekly)info.weekly=now;abSave(info);return true})
+  .catch(function(e){info.err=String(e&&e.message||e);info.errAt=now;abSave(info);return false});
+}
+function ago(t){var m=Math.round((Date.now()-t)/60000);if(m<1)return 'just now';if(m<60)return m+' min ago';var h=Math.round(m/60);if(h<48)return h+' hour'+(h===1?'':'s')+' ago';return Math.round(h/24)+' days ago'}
 function touch(){persist();schedule()}
 var schedT=null;
 function schedule(){clearTimeout(schedT);schedT=setTimeout(doSchedule,800)}
@@ -240,16 +299,16 @@ function b64(str){return btoa(unescape(encodeURIComponent(str)))}
 
 /* ---------- create ---------- */
 function makeWedding(f){
-  var sv=f.saved?V(f.saved):null,v=VENUES[+f.venue]||null,ab=names(f.couple),c=toMin(f.ceremony)||toMin('13:00'),t=TPL[f.pkg]||TPL.half;
-  var w={id:uid(),couple:f.couple||'New couple',date:f.date||'',venueId:sv?sv.id:null,
+  var ty=TYPES[f.type]?f.type:'wedding',T=TPLS[ty],sv=f.saved?V(f.saved):null,v=VENUES[+f.venue]||null,ab=names(f.couple),c=toMin(f.ceremony)||toMin(TYPES[ty].startDef),t=T[f.pkg]||T[TYPES[ty].pkgDef];
+  var w={id:uid(),type:ty,couple:f.couple||'New booking',date:f.date||'',venueId:sv?sv.id:null,
     venue:sv?sv.name:(f.venueName||(v?v[0]:'')),lat:sv?sv.lat:(v?v[1]:null),lon:sv?sv.lon:(v?v[2]:null),
     pkg:f.pkg,notes:'',wet:'',created:Date.now(),alerts:{on:false,mins:10,golden:true},
     timeline:t.items.map(function(x){return {id:uid(),time:fromMin(c+x[0]),title:x[1],note:x[2],done:false}}),
-    groups:groupTpl(ab[0],ab[1]).map(function(x){return {id:uid(),title:x[0],people:x[1],done:false}}),
-    shots:SHOTS.map(function(x){return {id:uid(),text:x,done:false}}),
-    kit:KIT.map(function(x){return {id:uid(),text:x,done:false}}),
-    after:afterTpl(),toAsk:[],
-    contacts:[{id:uid(),role:'Couple',name:f.couple||'',phone:''},{id:uid(),role:'Venue coordinator',name:'',phone:''},{id:uid(),role:'Group photo helper',name:'',phone:''}]};
+    groups:groupsFor(ty,ab[0],ab[1]).map(function(x){return {id:uid(),title:x[0],people:x[1],done:false}}),
+    shots:(SHOTS_T[ty]||SHOTS).map(function(x){return {id:uid(),text:x,done:false}}),
+    kit:(KIT_T[ty]||KIT).map(function(x){return {id:uid(),text:x,done:false}}),
+    after:afterTpl(ty),toAsk:[],
+    contacts:contactsFor(ty,f.couple)};
   S.weddings.push(w);touch();return w;
 }
 
@@ -454,10 +513,38 @@ function pdfText(file,step){
   });
 }
 
+/* ---------- photos ---------- */
+function photoSrc(ph){if(!ph)return '';if(ph.data)return ph.data;try{if(window.Capacitor&&window.Capacitor.convertFileSrc)return window.Capacitor.convertFileSrc(ph.uri)}catch(e){}return ph.uri}
+function shrink(file){
+  return new Promise(function(res,rej){
+    var url=URL.createObjectURL(file),img=new Image();
+    img.onload=function(){var m=1600,w=img.naturalWidth,h=img.naturalHeight,k=Math.min(1,m/Math.max(w,h));var c=document.createElement('canvas');c.width=Math.round(w*k);c.height=Math.round(h*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);res(c.toDataURL('image/jpeg',0.82))};
+    img.onerror=function(){URL.revokeObjectURL(url);rej(new Error('That file isn’t an image the app can open'))};
+    img.src=url;
+  });
+}
+function storePhoto(file){
+  var id=uid();
+  return shrink(file).then(function(d){
+    if(!FS)return {id:id,data:d,cap:''};
+    return FS.writeFile({path:'photos/'+id+'.jpg',data:d.split(',')[1],directory:'DATA',recursive:true}).then(function(r){return {id:id,uri:r.uri,cap:''}});
+  });
+}
+function dropPhoto(ph){if(ph&&FS&&ph.uri)FS.deleteFile({path:'photos/'+ph.id+'.jpg',directory:'DATA'}).catch(function(){})}
+function pickPhoto(target){ui.pick=target;var ip=document.getElementById('imgpick');ip.value='';ip.click()}
+function viewer(){if(!ui.viewPh)return '';return '<div class="viewer" data-act="closeview"><button data-act="closeview">Close</button><img src="'+esc(ui.viewPh.src)+'" alt="">'+(ui.viewPh.cap?'<div class="vc">'+esc(ui.viewPh.cap)+'</div>':'')+'</div>'}
+function thumbs(list,editable,owner){
+  if(!list||!list.length)return '';
+  return '<div class="thumbs">'+list.map(function(ph){return '<div class="ph"><img src="'+esc(photoSrc(ph))+'" data-act="viewph" data-o="'+owner+'" data-p="'+ph.id+'" alt="">'+(editable?'<button class="rm" data-act="rmph" data-o="'+owner+'" data-p="'+ph.id+'" aria-label="Remove photo">✕</button><input class="cap" value="'+esc(ph.cap||'')+'" placeholder="Caption" data-cap="'+ph.id+'" data-o="'+owner+'">':(ph.cap?'<div class="small muted" style="margin-top:2px">'+esc(ph.cap)+'</div>':''))+'</div>'}).join('')+'</div>';
+}
+function photoList(owner){ // owner 'v:<id>'
+  var v=V(owner.slice(2));if(!v)return null;if(!Array.isArray(v.photos))v.photos=[];return v.photos;
+}
+
 /* ---------- render ---------- */
 var app=document.getElementById('app');
 function msg(){return ui.msg?'<div class="msg">'+esc(ui.msg)+' <button class="ghost sm" data-act="dismiss">OK</button></div>':''}
-function back(label,act){return '<button class="ghost" data-act="'+(act||'home')+'" style="padding-left:0">‹ '+esc(label||'Weddings')+'</button>'}
+function back(label,act){return '<button class="ghost" data-act="'+(act||'home')+'" style="padding-left:0">‹ '+esc(label||'Bookings')+'</button>'}
 function render(){
   var h;
   if(ui.view==='new')h=rNew();
@@ -469,20 +556,22 @@ function render(){
   else if(ui.view==='mileage')h=rMileage();
   else if(ui.view==='settings')h=rSettings();
   else{ui.view='home';h=rHome()}
-  app.innerHTML=h;
+  app.innerHTML=h+viewer();
 }
 function rHome(){
-  var t=todayStr(),list=S.weddings.slice().sort(function(a,b){return (a.date||'9999').localeCompare(b.date||'9999')});
+  var t=todayStr(),list=S.weddings.filter(function(w){return !ui.filter||w.type===ui.filter}).slice().sort(function(a,b){return (a.date||'9999').localeCompare(b.date||'9999')});
   var up=list.filter(function(w){return !w.date||w.date>=t}),past=list.filter(function(w){return w.date&&w.date<t}).reverse();
-  var h=msg()+'<div class="row between" style="margin:4px 0 12px"><h1>Weddings</h1><button class="primary" data-act="new">+ Add</button></div>';
+  var h=msg()+'<div class="row between" style="margin:4px 0 12px"><h1>Bookings</h1><button class="primary" data-act="new">+ Add</button></div>';
+  var types=['wedding','family','event'].filter(function(k){return S.weddings.some(function(w){return w.type===k})});
+  if(types.length>1)h+='<div class="tabs" style="position:static"><button class="tab'+(!ui.filter?' on':'')+'" data-act="filter" data-f="">All</button>'+types.map(function(k){return '<button class="tab'+(ui.filter===k?' on':'')+'" data-act="filter" data-f="'+k+'">'+{wedding:'Weddings',family:'Families',event:'Events'}[k]+'</button>'}).join('')+'</div>';
   var due=[];S.weddings.forEach(function(w){w.after.forEach(function(x){if(!x.done&&w.date&&w.date<=t){var dd=addDays(w.date,+x.offset||0);if(dd<=addDays(t,3))due.push({w:w,x:x,d:dd})}})});
   due.sort(function(a,b){return a.d.localeCompare(b.d)});
-  if(due.length)h+='<div class="card"><div class="row between"><b>After-wedding jobs due</b><span class="pill'+(due.some(function(o){return o.d<t})?' red':'')+'">'+due.length+'</span></div>'+due.slice(0,5).map(function(o){return '<div class="item tap" data-act="openafter" data-id="'+o.w.id+'"><div class="txt grow"><div>'+esc(o.x.text)+'</div><div class="small muted">'+esc(o.w.couple)+'</div></div><span class="pill'+(o.d<t?' red':'')+'">'+(o.d<t?'Overdue':o.d===t?'Today':shortDate(o.d))+'</span></div>'}).join('')+'</div>';
-  if(!list.length)h+='<div class="card empty"><h3>No weddings yet</h3><p>Add one to get a timeline, group list, shot list, kit check, weather and light for the venue.</p><button class="gold" data-act="new">Add your first wedding</button></div>';
+  if(due.length)h+='<div class="card"><div class="row between"><b>After-shoot jobs due</b><span class="pill'+(due.some(function(o){return o.d<t})?' red':'')+'">'+due.length+'</span></div>'+due.slice(0,5).map(function(o){return '<div class="item tap" data-act="openafter" data-id="'+o.w.id+'"><div class="txt grow"><div>'+esc(o.x.text)+'</div><div class="small muted">'+esc(o.w.couple)+'</div></div><span class="pill'+(o.d<t?' red':'')+'">'+(o.d<t?'Overdue':o.d===t?'Today':shortDate(o.d))+'</span></div>'}).join('')+'</div>';
+  if(!list.length)h+='<div class="card empty"><h3>'+(ui.filter?'Nothing here yet':'No bookings yet')+'</h3><p>Add a wedding, family session or event to get a timeline, group list, shot list, kit check, weather and light for the location.</p><button class="gold" data-act="new">Add a booking</button></div>';
   function card(w){
     var dd=daysUntil(w.date),badge=dd===0?'<span class="pill">Today</span>':dd!=null&&dd>0?'<span class="pill">'+(dd===1?'Tomorrow':'In '+dd+' days')+'</span>':'';
     var tot=w.timeline.length+w.groups.length+w.shots.length,dn=w.timeline.filter(done).length+w.groups.filter(done).length+w.shots.filter(done).length;
-    return '<div class="card tap" data-act="open" data-id="'+w.id+'"><div class="row between"><h3>'+esc(w.couple)+'</h3>'+badge+'</div><div class="muted small">'+esc(niceDate(w.date))+(loc(w).name?' · '+esc(loc(w).name):'')+'</div>'+(dn?'<div class="prog"><i style="width:'+Math.round(dn/tot*100)+'%"></i></div>':'')+'</div>';
+    return '<div class="card tap" data-act="open" data-id="'+w.id+'"><div class="row between"><h3>'+esc(w.couple)+'</h3>'+badge+'</div><div class="muted small">'+(w.type!=='wedding'?esc(typeOf(w).label)+' \u00b7 ':'')+esc(niceDate(w.date))+(loc(w).name?' · '+esc(loc(w).name):'')+'</div>'+(dn?'<div class="prog"><i style="width:'+Math.round(dn/tot*100)+'%"></i></div>':'')+'</div>';
   }
   if(up.length)h+=up.map(card).join('');
   if(past.length)h+='<h3 style="margin:18px 0 10px" class="muted">Past</h3>'+past.map(card).join('');
@@ -496,15 +585,17 @@ function venueOptions(sel){
   return h;
 }
 function rNew(){
-  var p=Object.keys(TPL).map(function(k){return '<option value="'+k+'"'+(k==='half'?' selected':'')+'>'+esc(TPL[k].label)+'</option>'}).join('');
-  return '<div class="row between" style="margin:4px 0 12px"><h1>New wedding</h1><button class="ghost" data-act="home">Cancel</button></div>'+
-  '<form id="nf" class="card"><label class="f"><span>Couple</span><input name="couple" placeholder="e.g. Sam & Alex" required></label>'+
+  var ty=ui.newType||'wedding',T=TYPES[ty],P=TPLS[ty];
+  var p=Object.keys(P).map(function(k){return '<option value="'+k+'"'+(k===T.pkgDef?' selected':'')+'>'+esc(P[k].label)+'</option>'}).join('');
+  return '<div class="row between" style="margin:4px 0 12px"><h1>New booking</h1><button class="ghost" data-act="home">Cancel</button></div>'+
+  '<div class="tabs" style="position:static">'+Object.keys(TYPES).map(function(k){return '<button class="tab'+(k===ty?' on':'')+'" data-act="newtype" data-t="'+k+'">'+esc(TYPES[k].label)+'</button>'}).join('')+'</div>'+
+  '<form id="nf" class="card"><input type="hidden" name="type" value="'+ty+'"><label class="f"><span>'+esc(T.name)+'</span><input name="couple" placeholder="'+esc(T.namePh)+'" required></label>'+
   '<label class="f"><span>Date</span><input type="date" name="date" required></label>'+
   '<label class="f"><span>Venue or area</span><select name="where"><option value="">Not sure yet</option>'+venueOptions('')+'</select></label>'+
   '<label class="f"><span>Venue name (if it’s not in your list)</span><input name="venueName" placeholder="Leave blank to use the choice above"></label>'+
-  '<label class="f"><span>Ceremony time</span><input type="time" name="ceremony" value="13:00" required></label>'+
+  '<label class="f"><span>'+esc(T.start)+'</span><input type="time" name="ceremony" value="'+T.startDef+'" required></label>'+
   '<label class="f"><span>Coverage</span><select name="pkg">'+p+'</select></label>'+
-  '<p class="muted small">The timeline is built around the ceremony time. If you have the couple’s questionnaire, you can fill in from it next.</p>'+
+  '<p class="muted small">The timeline is built around the '+esc(T.start.toLowerCase())+'. If you have the questionnaire, you can fill in from it next.</p>'+
   '<button class="primary full" type="submit">Create</button></form>';
 }
 function tabsHtml(w){
@@ -517,7 +608,7 @@ function rWed(){
   var w=W(),dd=daysUntil(w.date),l=loc(w);
   var noEdit=ui.tab==='venue'||ui.tab==='notes'||ui.tab==='ask';
   var h=msg()+'<div class="row between" style="margin:4px 0 6px">'+back()+(noEdit?'':'<button class="'+(ui.edit?'primary':'')+'" data-act="edit">'+(ui.edit?'Done':'Edit')+'</button>')+'</div>';
-  h+='<h1>'+esc(w.couple)+'</h1><div class="muted" style="margin:2px 0 14px">'+esc(niceDate(w.date,true))+(l.name?' · '+esc(l.name):'')+(dd!=null&&dd>0?' · in '+dd+' day'+(dd===1?'':'s'):'')+'</div>';
+  h+='<h1>'+esc(w.couple)+'</h1><div class="muted" style="margin:2px 0 14px">'+(w.type!=='wedding'?esc(typeOf(w).label)+' \u00b7 ':'')+esc(niceDate(w.date,true))+(l.name?' · '+esc(l.name):'')+(dd!=null&&dd>0?' · in '+dd+' day'+(dd===1?'':'s'):'')+'</div>';
   h+=tabsHtml(w);
   if(ui.tab==='day')h+=rDay(w);
   else if(ui.tab==='groups')h+=rGroupsTimer(w)+rList(w,'groups');
@@ -619,6 +710,9 @@ function rDay(w){
   h+='<div class="card">'+(w.timeline.length?w.timeline.map(function(x){return '<div class="item'+(x.done?' done':'')+(x.id===curId?' cur':'')+'"><button class="chk'+(x.done?' on':'')+'" data-act="tick" data-k="timeline" data-i="'+x.id+'" aria-label="Done"></button><div class="tm">'+esc(x.time)+'</div><div class="txt grow"><div>'+esc(x.title)+'</div>'+(x.note?'<div class="small muted">'+esc(x.note)+'</div>':'')+'</div></div>'}).join(''):'<div class="empty">No timeline yet. Tap Edit to add one.</div>')+'</div>';
   h+=rLight(w)+rWeather(w)+rAlerts(w);
   h+='<div class="three"><button data-act="sharetl">Share timeline</button><button data-act="tlimg">Timeline image</button></div>';
+  h+='<div class="card" style="margin-top:12px"><div class="row between"><div><b>Full plan PDF</b><div class="small muted">Timeline, groups, shots, contacts, venue, light and wet weather plan</div></div></div><label class="row small" style="margin:10px 0"><input type="checkbox" data-planpriv="1" style="width:auto;min-height:0"'+(ui.planPriv===false?'':' checked')+'> Include notes (untick for a second shooter or helper; anything marked IMPORTANT is always included)</label><button class="gold full" data-act="planpdf">Make the plan PDF</button></div>';
+  if(ui.pdfUrl)h+='<p class="small muted">Your PDF is ready: <a href="'+ui.pdfUrl+'" download="'+esc(ui.pdfName)+'">'+esc(ui.pdfName)+'</a></p>';
+  h+=rCal(w);
   if(ui.img)h+='<div class="card" style="margin-top:12px"><p class="small muted" style="margin-top:0">Press and hold the image to save it, or use Share.</p><img class="preview" src="'+ui.img+'" alt="Timeline image"></div>';
   if(ui.copyText!=null)h+='<p class="small muted">Couldn’t copy automatically, so select the text below and copy it:</p><pre class="copy">'+esc(ui.copyText)+'</pre>';
   return h;
@@ -660,24 +754,25 @@ function rGroupsTimer(w){
 }
 function rList(w,k){
   var items=w[k],isG=k==='groups';
-  var title={groups:'Family groups',shots:'Must-have shots',kit:'Kit check'}[k];
-  var tip={groups:'Keep it to 8 or so. Read names out from here and tick each one off as you go.',shots:'Tick as you get them. Glance here before the coverage ends.',kit:'Run through this the night before.'}[k];
+  var title={groups:typeOf(w).groupsTitle,shots:'Must-have shots',kit:'Kit check'}[k];
+  var tip={groups:w.type==='family'?'Tick each one off as you go. Do the whole family first while the kids are fresh.':'Keep it to 8 or so. Read names out from here and tick each one off as you go.',shots:'Tick as you get them. Glance here before the coverage ends.',kit:'Run through this the night before.'}[k];
   var h='<div class="card"><div class="row between"><h3>'+title+'</h3><span class="small muted">'+items.filter(done).length+' of '+items.length+'</span></div><div class="small muted" style="margin:4px 0 8px">'+tip+'</div>';
   if(ui.edit){
-    h+=items.map(function(x){return '<div class="edit-row"><div class="row"><input class="grow" value="'+esc(isG?x.title:x.text)+'" data-k="'+k+'" data-i="'+x.id+'" data-f="'+(isG?'title':'text')+'"><button class="x" data-act="del" data-k="'+k+'" data-i="'+x.id+'" aria-label="Remove">✕</button></div>'+(isG?'<input value="'+esc(x.people)+'" placeholder="Names (e.g. Mum Sue, Dad Gareth, Nain)" data-k="groups" data-i="'+x.id+'" data-f="people">':'')+'</div>'}).join('');
+    h+=items.map(function(x){return '<div class="edit-row"><div class="row"><input class="grow" value="'+esc(isG?x.title:x.text)+'" data-k="'+k+'" data-i="'+x.id+'" data-f="'+(isG?'title':'text')+'">'+(k==='shots'?(x.photo?'<img class="tn" src="'+esc(photoSrc(x.photo))+'" data-act="rmshotph" data-i="'+x.id+'" alt="Remove photo" title="Tap to remove">':'<button class="sm" data-act="addshotph" data-i="'+x.id+'">Photo</button>'):'')+'<button class="x" data-act="del" data-k="'+k+'" data-i="'+x.id+'" aria-label="Remove">✕</button></div>'+(isG?'<input value="'+esc(x.people)+'" placeholder="Names (e.g. Mum Sue, Dad Gareth, Nain)" data-k="groups" data-i="'+x.id+'" data-f="people">':'')+'</div>'}).join('');
     h+='<button class="full" data-act="add" data-k="'+k+'" style="margin-top:8px">+ Add</button>';
+    if(k==='shots')h+='<div class="small muted" style="margin-top:6px">Photo adds a reference picture, such as an idea the couple sent. Tap a photo here to remove it.</div>';
     if(k!=='kit')h+='<div class="small muted" style="margin-top:10px">Use ↑ ↓ to reorder:</div>'+items.map(function(x,i){return '<div class="row between small" style="padding:4px 0"><span class="grow">'+esc(isG?x.title:x.text)+'</span><button class="ghost" data-act="mv" data-k="'+k+'" data-i="'+x.id+'" data-d="-1"'+(i===0?' disabled':'')+'>↑</button><button class="ghost" data-act="mv" data-k="'+k+'" data-i="'+x.id+'" data-d="1"'+(i===items.length-1?' disabled':'')+'>↓</button></div>'}).join('');
   }else{
-    h+=items.length?items.map(function(x,i){return '<div class="item'+(x.done?' done':'')+'"><button class="chk'+(x.done?' on':'')+'" data-act="tick" data-k="'+k+'" data-i="'+x.id+'" aria-label="Done"></button>'+(isG?'<div class="tm">'+(i+1)+'</div>':'')+'<div class="txt grow"><div>'+esc(isG?x.title:x.text)+'</div>'+(isG&&x.people?'<div class="small muted">'+esc(x.people)+'</div>':'')+'</div></div>'}).join(''):'<div class="empty">Nothing here yet. Tap Edit to add.</div>';
+    h+=items.length?items.map(function(x,i){return '<div class="item'+(x.done?' done':'')+'"><button class="chk'+(x.done?' on':'')+'" data-act="tick" data-k="'+k+'" data-i="'+x.id+'" aria-label="Done"></button>'+(isG?'<div class="tm">'+(i+1)+'</div>':'')+'<div class="txt grow"><div>'+esc(isG?x.title:x.text)+'</div>'+(isG&&x.people?'<div class="small muted">'+esc(x.people)+'</div>':'')+'</div>'+(x.photo?'<img class="tn" src="'+esc(photoSrc(x.photo))+'" data-act="viewph" data-o="s:'+k+':'+x.id+'" data-p="'+x.photo.id+'" alt="">':'')+'</div>'}).join(''):'<div class="empty">Nothing here yet. Tap Edit to add.</div>';
     if(items.some(done))h+='<button class="ghost full" data-act="reset" data-k="'+k+'">Untick all</button>';
   }
   return h+'</div>';
 }
 function rAfter(w){
   var t=todayStr();
-  var h='<div class="card"><div class="row between"><h3>After the wedding</h3><span class="small muted">'+w.after.filter(done).length+' of '+w.after.length+'</span></div><div class="small muted" style="margin:4px 0 8px">Due dates count from the wedding day. Gallery delivery is set to '+(+S.settings.deliveryDays)+' days in Settings; match it to your contract.</div>';
+  var h='<div class="card"><div class="row between"><h3>After the '+typeOf(w).noun+'</h3><span class="small muted">'+w.after.filter(done).length+' of '+w.after.length+'</span></div><div class="small muted" style="margin:4px 0 8px">Due dates count from the day of the '+typeOf(w).noun+'. Gallery delivery is set in Settings; match it to your contract.</div>';
   if(ui.edit){
-    h+=w.after.map(function(x){return '<div class="edit-row"><div class="row"><input class="grow" value="'+esc(x.text)+'" data-k="after" data-i="'+x.id+'" data-f="text"><button class="x" data-act="del" data-k="after" data-i="'+x.id+'" aria-label="Remove">✕</button></div><label class="row small muted">Days after the wedding <input type="number" inputmode="numeric" min="0" value="'+esc(x.offset)+'" data-k="after" data-i="'+x.id+'" data-f="offset" style="max-width:90px"></label></div>'}).join('');
+    h+=w.after.map(function(x){return '<div class="edit-row"><div class="row"><input class="grow" value="'+esc(x.text)+'" data-k="after" data-i="'+x.id+'" data-f="text"><button class="x" data-act="del" data-k="after" data-i="'+x.id+'" aria-label="Remove">✕</button></div><label class="row small muted">Days after <input type="number" inputmode="numeric" min="0" value="'+esc(x.offset)+'" data-k="after" data-i="'+x.id+'" data-f="offset" style="max-width:90px"></label></div>'}).join('');
     h+='<button class="full" data-act="add" data-k="after" style="margin-top:8px">+ Add</button>';
   }else{
     var list=w.after.slice().sort(function(a,b){return (+a.offset)-(+b.offset)});
@@ -709,7 +804,7 @@ function loadPdfLib(){
   if(!pdfLibP)pdfLibP=new Promise(function(res,rej){var sc=document.createElement('script');sc.src='vendor/pdf-lib.min.js';sc.onload=function(){res(window.PDFLib)};sc.onerror=function(){pdfLibP=null;rej(new Error('Couldn’t load the PDF maker'))};document.head.appendChild(sc)});
   return pdfLibP;
 }
-function pdfSafe(t){return String(t||'').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/–|—/g,'-').replace(/·/g,'-').replace(/…/g,'...').replace(/[^\x09\x0a\x0d\x20-\x7e£éèêâôûîïüöäñç]/g,'')}
+function pdfSafe(t){return String(t||'').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/–|—/g,'-').replace(/·/g,'-').replace(/…/g,'...').replace(/›/g,'>').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\x09\x0a\x0d\x20-\x7e£]/g,'')}
 function askPdf(w){
   return loadPdfLib().then(function(L){
     return L.PDFDocument.create().then(function(doc){
@@ -738,6 +833,89 @@ function askPdf(w){
     });
   });
 }
+function buildPdf(fill){
+  return loadPdfLib().then(function(L){
+    return L.PDFDocument.create().then(function(doc){
+      return Promise.all([doc.embedFont(L.StandardFonts.Helvetica),doc.embedFont(L.StandardFonts.HelveticaBold),doc.embedFont(L.StandardFonts.TimesRomanBold)]).then(function(f){
+        var P={L:L,doc:doc,reg:f[0],bold:f[1],serif:f[2],W:595.28,H:841.89,M:50,ink:L.rgb(0.1,0.1,0.1),muted:L.rgb(0.43,0.42,0.39),gold:L.rgb(0.66,0.51,0.25),line:L.rgb(0.88,0.85,0.8),soft:L.rgb(0.95,0.92,0.87)};
+        P.page=doc.addPage([P.W,P.H]);P.y=P.H-P.M;
+        P.np=function(){P.page=doc.addPage([P.W,P.H]);P.y=P.H-P.M};
+        P.need=function(h){if(P.y-h<P.M)P.np()};
+        P.wrap=function(t,font,size,max){var out=[];String(t).split('\n').forEach(function(par){var words=par.split(/\s+/),cur='';words.forEach(function(wd){var tr=cur?cur+' '+wd:wd;if(font.widthOfTextAtSize(tr,size)>max&&cur){out.push(cur);cur=wd}else cur=tr});out.push(cur)});return out};
+        P.text=function(t,o){o=o||{};var font=o.font||P.reg,size=o.size||10.5,x=P.M+(o.x||0),max=o.max||(P.W-2*P.M-(o.x||0)),lh=size*1.35;
+          P.wrap(pdfSafe(t),font,size,max).forEach(function(l){P.need(lh);P.page.drawText(l,{x:x,y:P.y-size,size:size,font:font,color:o.color||P.ink});P.y-=lh})};
+        P.h2=function(t){P.need(60);P.y-=10;P.text(t,{font:P.serif,size:16});P.page.drawRectangle({x:P.M,y:P.y+2,width:P.W-2*P.M,height:0.8,color:P.line});P.y-=8};
+        P.row=function(left,right,o){o=o||{};var lw=o.lw||62,size=o.size||10.5;var lines=P.wrap(pdfSafe(right),P.reg,size,P.W-2*P.M-lw);P.need(lines.length*size*1.35+4);
+          P.page.drawText(pdfSafe(left),{x:P.M,y:P.y-size,size:size,font:P.bold,color:P.ink});
+          lines.forEach(function(l){P.page.drawText(l,{x:P.M+lw,y:P.y-size,size:size,font:P.reg,color:P.ink});P.y-=size*1.35});
+          if(o.sub){P.wrap(pdfSafe(o.sub),P.reg,size-1.5,P.W-2*P.M-lw).forEach(function(l){P.need(14);P.page.drawText(l,{x:P.M+lw,y:P.y-(size-1.5),size:size-1.5,font:P.reg,color:P.muted});P.y-=(size-1.5)*1.35})}
+          P.y-=4};
+        P.box=function(n){var x=P.M,s=9;P.page.drawRectangle({x:x,y:P.y-s-1,width:s,height:s,borderColor:P.gold,borderWidth:1})};
+        fill(P);
+        return doc.saveAsBase64();
+      });
+    });
+  });
+}
+function planPdf(w,priv){
+  return buildPdf(function(P){
+    var T=typeOf(w),lc=loc(w),l=light(w),v=w.venueId&&V(w.venueId);
+    P.text(w.couple,{font:P.serif,size:26});
+    P.text([T.label,niceDate(w.date,true),lc.name].filter(Boolean).join('  -  '),{color:P.muted,size:11});
+    P.page.drawRectangle({x:P.M,y:P.y-6,width:60,height:2,color:P.gold});P.y-=16;
+    if(l){P.need(30);P.page.drawRectangle({x:P.M,y:P.y-24,width:P.W-2*P.M,height:24,color:P.soft});P.page.drawText(pdfSafe('Golden hour from '+l.golden+'   -   Sunset '+l.sunset+'   -   Blue hour ends '+l.blue),{x:P.M+10,y:P.y-16,size:10.5,font:P.bold,color:P.ink});P.y-=34}
+    var imp=w.notes&&/IMPORTANT/.test(w.notes)?w.notes.split(/\n\n/).filter(function(n){return /^IMPORTANT/.test(n)}):[];
+    if(imp.length){P.h2('Important');imp.forEach(function(n){P.text(n.replace(/^IMPORTANT[^\n]*\n/,''),{color:P.ink})})}
+    P.h2('Timeline');
+    if(w.timeline.length)w.timeline.forEach(function(x){P.row(x.time,x.title,{sub:x.note})});else P.text('No timeline yet.',{color:P.muted});
+    if(w.groups.length){P.h2(T.groupsTitle);w.groups.forEach(function(x,i){P.row(String(i+1)+'.',x.title,{lw:24,sub:x.people})})}
+    if(w.shots.length){P.h2('Must-have shots');w.shots.forEach(function(x){P.row('-',x.text,{lw:14})})}
+    var cs=w.contacts.filter(function(c){return c.name||c.phone});
+    if(cs.length){P.h2('Contacts');cs.forEach(function(c){P.row(c.role||'Contact',(c.name||'')+(c.phone?'   '+c.phone:''),{lw:120})})}
+    var vrows=v?[['Parking',v.parking],['On arrival',v.meet],['Portrait spots',v.spots],['Wet weather spots',v.wet],['Venue rules',v.notes]].filter(function(r){return r[1]}):[];
+    if(vrows.length||w.wet){P.h2('Venue'+(lc.name?': '+lc.name:''));vrows.forEach(function(r){P.row(r[0],r[1],{lw:110})});if(w.wet)P.row('Wet weather plan',w.wet,{lw:110})}
+    var open=w.toAsk.filter(function(x){return !x.done});
+    if(open.length){P.h2('Still to find out');open.forEach(function(x){P.row('-',x.q,{lw:14})})}
+    if(priv){var nt=(w.notes||'').split(/\n\n/).filter(function(n){return n.trim()&&!/^IMPORTANT/.test(n)});if(nt.length){P.h2('Notes');nt.forEach(function(n){P.text(n);P.y-=4})}}
+  });
+}
+function calItems(w){
+  if(!w.date)return [];
+  var s=S.settings,T=typeOf(w),first=w.timeline.length?w.timeline[0].time:'12:00',last=w.timeline.length?w.timeline[w.timeline.length-1].time:null;
+  var st=at(w.date,first),en=last&&last!==first?at(w.date,last):new Date(st.getTime()+3600000),lc=loc(w);
+  var det=w.timeline.map(function(x){return x.time+'  '+x.title}).join('\n');
+  var out=[{key:'day',label:T.label+' day',title:T.label+': '+w.couple,start:st,end:en,details:det,location:lc.name||''}];
+  function allDay(key,label,days,title,details){var d=addDays(w.date,-days);if(d>=todayStr())out.push({key:key,label:label,title:title,date:d,details:details||''})}
+  allDay('quest','Questionnaire due ('+(+s.questDays)+' days before)',+s.questDays||14,'Questionnaire due: '+w.couple,'Check it has come back. Import it in the Wedding Day app.');
+  if(w.type==='wedding'){
+    allDay('plan','Planning call ('+(+s.planWeeks)+' weeks before)',(+s.planWeeks||6)*7,'Planning call: '+w.couple,'Go through the To ask list, timeline, groups and portrait time.');
+    allDay('bal','Balance due ('+(+s.balanceDays)+' days before)',+s.balanceDays||30,'Balance due: '+w.couple,'Check the amount and due date in the contract.');
+  }
+  return out;
+}
+function gcalUrl(e){
+  function f(d){return d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z')}
+  var dates=e.date?e.date.replace(/-/g,'')+'/'+addDays(e.date,1).replace(/-/g,''):f(e.start)+'/'+f(e.end);
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(e.title)+'&dates='+dates+'&ctz=Europe%2FLondon&details='+encodeURIComponent(e.details||'')+(e.location?'&location='+encodeURIComponent(e.location):'');
+}
+function icsText(w){
+  function f(d){return d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z')}
+  function esc2(t){return String(t||'').replace(/\\/g,'\\\\').replace(/;/g,'\;').replace(/,/g,'\\,').replace(/\n/g,'\\n')}
+  var L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Wedding Day//EN','CALSCALE:GREGORIAN'];
+  calItems(w).forEach(function(e){
+    L.push('BEGIN:VEVENT','UID:'+w.id+'-'+e.key+'@weddingday','DTSTAMP:'+f(new Date()));
+    if(e.date)L.push('DTSTART;VALUE=DATE:'+e.date.replace(/-/g,''),'DTEND;VALUE=DATE:'+addDays(e.date,1).replace(/-/g,''));
+    else L.push('DTSTART:'+f(e.start),'DTEND:'+f(e.end));
+    L.push('SUMMARY:'+esc2(e.title));if(e.details)L.push('DESCRIPTION:'+esc2(e.details));if(e.location)L.push('LOCATION:'+esc2(e.location));
+    if(e.date)L.push('BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+esc2(e.title),'TRIGGER:PT9H','END:VALARM');
+    L.push('END:VEVENT');
+  });
+  L.push('END:VCALENDAR');return L.join('\r\n');
+}
+function rCal(w){
+  var items=calItems(w);if(!items.length)return '';
+  return '<div class="card"><b>Add to calendar</b><div class="small muted" style="margin:2px 0 6px">Each one opens Google Calendar with the details filled in.</div>'+items.map(function(e){return '<div class="item"><div class="txt grow"><div>'+esc(e.label)+'</div><div class="small muted">'+esc(e.date?niceDate(e.date):niceDate(w.date)+', '+fmtT(e.start)+'\u2013'+fmtT(e.end))+'</div></div><a class="btn-a" href="'+esc(gcalUrl(e))+'">Add</a></div>'}).join('')+'<button class="ghost full sm" data-act="ics" style="margin-top:6px">Or share them all as a calendar file</button></div>';
+}
 function rPeople(w){
   var h='<div class="card"><h3 style="margin-bottom:6px">Contacts</h3>';
   if(ui.edit){
@@ -761,7 +939,8 @@ function rVenueTab(w){
   if(v){
     h+='<div class="card"><div class="row between"><h3>'+esc(v.name)+'</h3><button class="sm" data-act="editvenue" data-v="'+v.id+'">Edit venue</button></div>';
     [['Parking','parking'],['On arrival','meet'],['Best portrait spots','spots'],['Wet weather spots','wet'],['Rules and notes','notes']].forEach(function(r){if(v[r[1]])h+='<div class="item"><div class="txt grow"><div class="small muted">'+r[0]+'</div><div style="white-space:pre-wrap">'+esc(v[r[1]])+'</div></div></div>'});
-    if(!v.parking&&!v.meet&&!v.spots&&!v.wet&&!v.notes)h+='<div class="small muted" style="margin-top:6px">No details saved yet. Tap Edit venue to add parking, portrait spots and wet weather spots. They’ll show for every wedding here.</div>';
+    if(v.photos&&v.photos.length)h+=thumbs(v.photos,false,'v:'+v.id);
+    if(!v.parking&&!v.meet&&!v.spots&&!v.wet&&!v.notes&&!(v.photos&&v.photos.length))h+='<div class="small muted" style="margin-top:6px">No details saved yet. Tap Edit venue to add parking, portrait spots and wet weather spots. They’ll show for every wedding here.</div>';
     h+='</div>';
   }
   h+='<div class="card"><h3 style="margin-bottom:10px">'+(v?'Change venue':'Venue')+'</h3><label class="f"><span>Choose from your venues or an area</span><select data-w="where"><option value="">'+(v?'Keep '+esc(v.name):'Choose…')+'</option>'+venueOptions('')+'</select></label>';
@@ -778,10 +957,10 @@ function rVenueTab(w){
   return h;
 }
 function rNotes(w){
-  var h='<div class="card"><h3 style="margin-bottom:8px">Notes</h3><textarea data-w="notes" placeholder="Anything else for this wedding…" style="min-height:160px">'+esc(w.notes)+'</textarea></div>';
+  var h='<div class="card"><h3 style="margin-bottom:8px">Notes</h3><textarea data-w="notes" placeholder="Anything else for this booking…" style="min-height:160px">'+esc(w.notes)+'</textarea></div>';
   h+='<button class="full" data-act="import" style="margin-bottom:12px">Fill in from the questionnaire</button>';
-  h+='<div class="card"><h3 style="margin-bottom:10px">Wedding details</h3><label class="f"><span>Couple</span><input value="'+esc(w.couple)+'" data-w="couple"></label><label class="f"><span>Date</span><input type="date" value="'+esc(w.date)+'" data-w="date"></label><div class="small muted">Change the venue on the Venue tab.</div></div>';
-  h+='<button class="'+(ui.arm==='delw'?'armed':'danger')+' full" data-act="delw">'+(ui.arm==='delw'?'Tap again to delete this wedding':'Delete this wedding')+'</button>';
+  h+='<div class="card"><h3 style="margin-bottom:10px">Details</h3><label class="f"><span>'+esc(typeOf(w).name)+'</span><input value="'+esc(w.couple)+'" data-w="couple"></label><label class="f"><span>Date</span><input type="date" value="'+esc(w.date)+'" data-w="date"></label><div class="small muted">Change the venue on the Venue tab.</div></div>';
+  h+='<button class="'+(ui.arm==='delw'?'armed':'danger')+' full" data-act="delw">'+(ui.arm==='delw'?'Tap again to delete this booking':'Delete this booking')+'</button>';
   return h;
 }
 function rImport(){
@@ -811,23 +990,31 @@ function rImport(){
   return h;
 }
 function rBackup(){
+  var info=abInfo(),auto;
+  if(!FS)auto='<p class="small muted">Automatic backups work in the installed app.</p>';
+  else if(info.err&&(!info.last||info.errAt>info.last))auto='<p class="small warn">The last automatic backup failed: '+esc(info.err)+'</p>';
+  else if(info.last)auto='<p class="small"><span class="ok"><b>Last saved '+ago(info.last)+'</b></span>'+(info.weekly?'. Weekly copy: '+ago(info.weekly):'')+'.</p>';
+  else auto='<p class="small muted">No automatic backup yet. One is saved a few seconds after any change.</p>';
   return '<div class="row between" style="margin:4px 0 12px"><h1>Backup</h1><button class="ghost" data-act="home">Done</button></div>'+msg()+
-  '<div class="card"><h3>Save a backup</h3><p class="small muted">Saves every wedding, venue and setting as a file. Send it to your email or Google Drive now and then, so nothing is lost if you change phones.</p><button class="full gold" data-act="sharebackup">Share backup file</button><button class="ghost full sm" data-act="copyall" style="margin-top:6px">Or copy it as text</button>'+(ui.copyText!=null?'<pre class="copy">'+esc(ui.copyText)+'</pre>':'')+'</div>'+
-  '<div class="card"><h3>Restore</h3><p class="small muted">Open the backup file, copy all its text and paste it here. It replaces everything currently in the app.</p><textarea id="imp" placeholder="Paste backup text"></textarea><button class="'+(ui.arm==='imp'?'armed':'')+' full" data-act="imp" style="margin-top:8px">'+(ui.arm==='imp'?'Tap again to replace everything':'Restore from backup')+'</button></div>';
+  '<div class="card"><h3>Automatic backups</h3><p class="small muted">The app saves a backup to your phone’s <b>Documents › Wedding Day</b> folder after every change, plus a dated copy each week. Those files stay even if the app is removed.</p>'+auto+(FS?'<button class="full" data-act="backupnow">Back up now</button>':'')+'</div>'+
+  '<div class="card"><h3>Send a copy elsewhere</h3><p class="small muted">If your phone is lost or broken, the Documents folder goes with it. Send a copy to your email or Google Drive now and then.</p><button class="full gold" data-act="sharebackup">Share backup file</button><button class="ghost full sm" data-act="copyall" style="margin-top:6px">Or copy it as text</button>'+(ui.copyText!=null?'<pre class="copy">'+esc(ui.copyText)+'</pre>':'')+'</div>'+
+  '<div class="card"><h3>Restore</h3><p class="small muted">Choose a backup file (from Documents › Wedding Day, Drive or email), or paste a backup’s text. It replaces everything currently in the app.</p><button class="full" data-act="pickjson">Choose a backup file</button><textarea id="imp" placeholder="Or paste backup text" style="margin-top:8px">'+esc(ui.restoreText||'')+'</textarea><button class="'+(ui.arm==='imp'?'armed':'')+' full" data-act="imp" style="margin-top:8px">'+(ui.arm==='imp'?'Tap again to replace everything':'Restore from backup')+'</button></div>'+
+  '<p class="small muted">Photos you add to venues and shots are kept on the phone but aren’t inside the backup file.</p>';
 }
 function rVenues(){
   var h='<div class="row between" style="margin:4px 0 12px"><h1>Venues</h1><button class="primary" data-act="newvenue">+ Add</button></div>'+msg();
-  if(!S.venues.length)return h+'<div class="card empty"><p>Save the places you shoot often, with parking, portrait spots and wet weather spots. Pick them when you add a wedding.</p><button class="gold" data-act="newvenue">Add a venue</button></div><button class="ghost full" data-act="home">‹ Back</button>';
+  if(!S.venues.length)return h+'<div class="card empty"><p>Save the places you shoot often, with parking, portrait spots and wet weather spots. Pick them when you add a booking.</p><button class="gold" data-act="newvenue">Add a venue</button></div><button class="ghost full" data-act="home">‹ Back</button>';
   h+=S.venues.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).map(function(v){
     var c=S.weddings.filter(function(w){return w.venueId===v.id}).length;
-    return '<div class="card tap" data-act="editvenue" data-v="'+v.id+'"><div class="row between"><h3>'+esc(v.name||'Unnamed')+'</h3><span class="small muted">'+c+' wedding'+(c===1?'':'s')+'</span></div>'+(v.spots?'<div class="small muted" style="margin-top:4px">'+esc(v.spots.slice(0,90))+'</div>':'')+'</div>';
+    return '<div class="card tap" data-act="editvenue" data-v="'+v.id+'"><div class="row between"><h3>'+esc(v.name||'Unnamed')+'</h3><span class="small muted">'+c+' booking'+(c===1?'':'s')+'</span></div>'+(v.spots?'<div class="small muted" style="margin-top:4px">'+esc(v.spots.slice(0,90))+'</div>':'')+'</div>';
   }).join('');
   return h+'<button class="ghost full" data-act="home">‹ Back</button>';
 }
 function rVenueEdit(){
   var v=V(ui.venueId);
-  var h='<div class="row between" style="margin:4px 0 6px">'+back(ui.retWed?'Back to wedding':'Venues',ui.retWed?'backwed':'venues')+'</div><h1 style="margin-bottom:12px">'+esc(v.name||'New venue')+'</h1>';
+  var h='<div class="row between" style="margin:4px 0 6px">'+back(ui.retWed?'Back':'Venues',ui.retWed?'backwed':'venues')+'</div><h1 style="margin-bottom:12px">'+esc(v.name||'New venue')+'</h1>';
   h+='<div class="card"><label class="f"><span>Start from an area (optional)</span><select data-vf="area"><option value="">—</option>'+VENUES.map(function(x,i){return '<option value="'+i+'">'+esc(x[0])+'</option>'}).join('')+'</select></label>'+venueFields(v,'data-vf')+'</div>';
+  h+='<div class="card"><div class="row between"><h3>Photos</h3><button class="sm" data-act="addvph">+ Add photo</button></div><div class="small muted">Portrait spots, wet weather spots, parking, the entrance. Add a caption so you know what each one shows.</div>'+thumbs(v.photos,true,'v:'+v.id)+'</div>';
   var l=v.lat!=null?light({date:todayStr(),lat:v.lat,lon:v.lon}):null;
   if(l)h+='<div class="small muted" style="margin:-4px 0 12px">Today here: golden hour from '+l.golden+', sunset '+l.sunset+'.</div>';
   h+='<button class="'+(ui.arm==='delv'?'armed':'danger')+' full" data-act="delv">'+(ui.arm==='delv'?'Tap again to delete this venue':'Delete venue')+'</button>';
@@ -841,9 +1028,9 @@ function rMileage(){
   var body=rows.map(function(w){var m=milesOneWay(w);if(!m){ok=false;return '<tr><td>'+esc(shortDate(w.date))+'</td><td>'+esc(w.couple)+'</td><td class="n">—</td></tr>'}tot+=m.m*2;return '<tr><td>'+esc(shortDate(w.date))+'</td><td>'+esc(w.couple)+(m.est?' <span class="small muted">est.</span>':'')+'</td><td class="n">'+(m.m*2)+'</td></tr>'}).join('');
   var h='<div class="row between" style="margin:4px 0 12px"><h1>Mileage</h1><button class="ghost" data-act="home">Done</button></div>'+msg();
   h+='<div class="row" style="margin-bottom:12px"><button class="sm" data-act="year" data-d="-1">‹</button><b class="grow" style="text-align:center">Tax year '+yr+'–'+String(yr+1).slice(2)+'</b><button class="sm" data-act="year" data-d="1"'+(yr>=cur?' disabled':'')+'>›</button></div>';
-  h+='<div class="card"><div class="grid3" style="margin:0"><div><b>'+rows.length+'</b><span>Weddings</span></div><div><b>'+tot+'</b><span>Miles (return)</span></div><div><b>'+money(tot*s.hmrc)+'</b><span>At '+Math.round(s.hmrc*100)+'p a mile</span></div></div></div>';
-  h+='<div class="card">'+(rows.length?'<table class="log"><tr><th>Date</th><th>Wedding</th><th class="n">Miles</th></tr>'+body+'</table>':'<div class="empty">No weddings in this tax year yet.</div>')+'</div>';
-  h+='<p class="small muted">Return trips from '+esc(s.baseName)+'. "est." means the miles are estimated from the map; type the real figure on the wedding’s Venue tab for your records. This only covers weddings in the app, so add any other business journeys to your own records. HMRC’s 45p rate is for the first 10,000 business miles in a year.</p>';
+  h+='<div class="card"><div class="grid3" style="margin:0"><div><b>'+rows.length+'</b><span>Bookings</span></div><div><b>'+tot+'</b><span>Miles (return)</span></div><div><b>'+money(tot*s.hmrc)+'</b><span>At '+Math.round(s.hmrc*100)+'p a mile</span></div></div></div>';
+  h+='<div class="card">'+(rows.length?'<table class="log"><tr><th>Date</th><th>Booking</th><th class="n">Miles</th></tr>'+body+'</table>':'<div class="empty">No bookings in this tax year yet.</div>')+'</div>';
+  h+='<p class="small muted">Return trips from '+esc(s.baseName)+'. "est." means the miles are estimated from the map; type the real figure on the booking’s Venue tab for your records. This only covers bookings in the app, so add any other business journeys to your own records. HMRC’s 45p rate is for the first 10,000 business miles in a year.</p>';
   if(rows.length)h+='<button class="full" data-act="sharemiles" data-y="'+yr+'">Share this list</button>';
   return h;
 }
@@ -853,14 +1040,15 @@ function rSettings(){
   return '<div class="row between" style="margin:4px 0 12px"><h1>Settings</h1><button class="ghost" data-act="home">Done</button></div>'+msg()+
   '<div class="card"><h3 style="margin-bottom:10px">Where you travel from</h3>'+f('baseName','Name')+'<div class="three">'+f('baseLat','Latitude','number','any')+f('baseLon','Longitude','number','any')+'</div></div>'+
   '<div class="card"><h3 style="margin-bottom:10px">Travel</h3><div class="three">'+f('freeMiles','Free miles each way','number','1')+f('rate','Charge per mile (£)','number','0.01')+'</div><div class="three">'+f('hmrc','HMRC rate per mile (£)','number','0.01')+f('roadFactor','Road estimate factor','number','0.05')+'</div><div class="small muted">Distances are estimated as a straight line times the road factor. 1.3 suits most North Wales roads; type real miles on a wedding to override.</div></div>'+
-  '<div class="card"><h3 style="margin-bottom:10px">Workflow</h3><div class="three">'+f('deliveryDays','Gallery delivery (days)','number','1')+f('groupTarget','Group photos target (min)','number','1')+'</div><div class="small muted">Gallery delivery sets the after-wedding due dates for new weddings.</div></div>';
+  '<div class="card"><h3 style="margin-bottom:10px">Workflow</h3><div class="three">'+f('deliveryDays','Wedding gallery delivery (days)','number','1')+f('familyDeliveryDays','Family gallery delivery (days)','number','1')+'</div><div class="three">'+f('eventDeliveryDays','Event gallery delivery (days)','number','1')+f('groupTarget','Group photos target (min)','number','1')+'</div><div class="small muted">Gallery delivery sets the after-shoot due dates for new bookings.</div></div>'+
+  '<div class="card"><h3 style="margin-bottom:10px">Calendar reminders</h3><div class="three">'+f('questDays','Questionnaire due (days before)','number','1')+f('planWeeks','Planning call (weeks before)','number','1')+'</div>'+f('balanceDays','Wedding balance due (days before)','number','1')+'<div class="small muted">Match these to your contracts.</div></div>';
 }
 
 /* ---------- events ---------- */
 function showImport(txt,w){
   var R=parseQuestionnaire(txt,w.couple);R.notes=R.notes.map(function(x){return {text:x}});
   R.rep_timeline=R.timeline.length>=3;R.rep_groups=R.groups.length>=2;
-  if(R.date&&w.date&&R.date!==w.date)R.notes.unshift({text:'Check the date: the questionnaire says '+niceDate(R.date,true)+', but this wedding is set for '+niceDate(w.date,true)+'.'});
+  if(R.date&&w.date&&R.date!==w.date)R.notes.unshift({text:'Check the date: the questionnaire says '+niceDate(R.date,true)+', but this booking is set for '+niceDate(w.date,true)+'.'});
   ui.imp=R;ui.pdfBusy=false;window.scrollTo(0,0);render();
 }
 function find(w,k,id){var a=w[k];for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null}
@@ -881,7 +1069,9 @@ app.addEventListener('click',function(ev){
   var a=b.dataset.act,w=W(),k=b.dataset.k,id=b.dataset.i;
   if(a!=='delw'&&a!=='imp'&&a!=='delv')ui.arm=null;
   if(a==='dismiss'){ui.msg='';return render()}
-  if(a==='new'){ui.view='new';ui.msg='';return render()}
+  if(a==='new'){ui.view='new';ui.msg='';ui.newType=ui.filter||'wedding';return render()}
+  if(a==='newtype'){ui.newType=b.dataset.t;return render()}
+  if(a==='filter'){ui.filter=b.dataset.f||null;return render()}
   if(a==='home'){ui.view='home';ui.edit=false;ui.copyText=null;ui.img=null;ui.live=false;stopLive();window.scrollTo(0,0);return render()}
   if(a==='backup'||a==='venues'||a==='mileage'||a==='settings'){ui.view=a;ui.copyText=null;ui.msg='';ui.year=null;window.scrollTo(0,0);return render()}
   if(a==='open')return openWed(b.dataset.id);
@@ -892,8 +1082,16 @@ app.addEventListener('click',function(ev){
   if(a==='delv'){
     if(ui.arm!=='delv'){ui.arm='delv';return render()}
     var dv=V(ui.venueId);S.weddings.forEach(function(x){if(x.venueId===ui.venueId){x.venueId=null;x.venue=dv.name;x.lat=dv.lat;x.lon=dv.lon}});
+    (dv.photos||[]).forEach(dropPhoto);
     S.venues=S.venues.filter(function(x){return x.id!==ui.venueId});ui.arm=null;persist();ui.view=ui.retWed?'wed':'venues';return render();
   }
+  if(a==='closeview'){ui.viewPh=null;return render()}
+  if(a==='viewph'){var o=b.dataset.o,pid=b.dataset.p,ph=null;
+    if(o.indexOf('v:')===0){(photoList(o)||[]).forEach(function(x){if(x.id===pid)ph=x})}
+    else{var pp=o.split(':'),ww=W();if(ww){var it2=find(ww,pp[1],pp[2]);if(it2)ph=it2.photo}}
+    if(ph){ui.viewPh={src:photoSrc(ph),cap:ph.cap||''};render()}return}
+  if(a==='addvph'){return pickPhoto({kind:'venue',id:ui.venueId})}
+  if(a==='rmph'){var lst=photoList(b.dataset.o);if(lst){var ix2=lst.findIndex(function(x){return x.id===b.dataset.p});if(ix2>=0){dropPhoto(lst[ix2]);lst.splice(ix2,1);persist();render()}}return}
   if(a==='year'){var cy=ui.year==null?taxYear(todayStr()):ui.year;ui.year=cy+(+b.dataset.d);return render()}
   if(a==='sharemiles'){
     var yr=+b.dataset.y,s=S.settings,tot=0,lines=S.weddings.filter(function(x){return x.date&&taxYear(x.date)===yr&&x.date<=todayStr()}).sort(function(p,q){return p.date.localeCompare(q.date)}).map(function(x){var m=milesOneWay(x);if(m)tot+=m.m*2;return x.date+'  '+x.couple+'  '+(m?m.m*2+' miles'+(m.est?' (est.)':''):'no venue')});
@@ -906,13 +1104,15 @@ app.addEventListener('click',function(ev){
     return;
   }
   if(a==='copyall')return copy(JSON.stringify(S));
+  if(a==='backupnow'){ui.msg='Backing up…';render();return doAutoBackup(true).then(function(ok){ui.msg=ok?'Backed up to Documents › Wedding Day.':'';render()})}
+  if(a==='pickjson'){var jp=document.getElementById('jsonpick');jp.value='';jp.click();return}
   if(a==='imp'){
     var raw=(document.getElementById('imp')||{}).value||'',data;
     try{data=JSON.parse(raw)}catch(e){data=null}
     if(!data||!Array.isArray(data.weddings)){ui.arm=null;ui.msg='That doesn’t look like a backup from this app.';return render()}
     if(ui.arm!=='imp'){ui.arm='imp';render();document.getElementById('imp').value=raw;return}
     S={v:1,updatedAt:0,weddings:data.weddings,venues:Array.isArray(data.venues)?data.venues:[],settings:Object.assign({},DEF_SETTINGS,data.settings||{})};
-    S.weddings.forEach(migrate);ui.arm=null;touch();ui.view='home';ui.msg='Restored '+S.weddings.length+' wedding'+(S.weddings.length===1?'':'s')+'.';return render();
+    S.weddings.forEach(migrate);ui.arm=null;ui.restoreText='';touch();ui.view='home';ui.msg='Restored '+S.weddings.length+' booking'+(S.weddings.length===1?'':'s')+'.';return render();
   }
   if(!w)return;
   if(a==='tab'){ui.tab=b.dataset.tab;ui.copyText=null;ui.img=null;ui.pdfUrl=null;if(ui.tab==='venue'||ui.tab==='notes')ui.edit=false;if(ui.tab!=='day'){ui.live=false;stopLive()}return render()}
@@ -938,6 +1138,8 @@ app.addEventListener('click',function(ev){
   if(a==='gstart'){w.groupTimer={start:Date.now(),end:null};persist();return render()}
   if(a==='gstop'){if(w.groupTimer)w.groupTimer.end=Date.now();persist();return render()}
   if(a==='greset'){w.groupTimer=null;persist();return render()}
+  if(a==='addshotph'){return pickPhoto({kind:'shot',wid:w.id,id:id})}
+  if(a==='rmshotph'){var sh=find(w,'shots',id);if(sh&&sh.photo){dropPhoto(sh.photo);sh.photo=null;persist();render()}return}
   if(a==='tick'){var it=find(w,k,id);if(it){it.done=!it.done;touch();render()}return}
   if(a==='del'){w[k]=w[k].filter(function(x){return x.id!==id});touch();return render()}
   if(a==='add'){
@@ -963,6 +1165,16 @@ app.addEventListener('click',function(ev){
   if(a==='pickpdf'){var fi=document.getElementById('qpdf');fi.value='';fi.click();return}
   if(a==='addq'){var nq=(document.getElementById('newq')||{}).value||'';if(!nq.trim())return;w.toAsk.push({id:uid(),q:nq.trim(),answer:'',done:false});touch();return render()}
   if(a==='askmsg')return shareText('Questions for '+w.couple,askMessage(w));
+  if(a==='planpdf'){
+    ui.pdfUrl=null;ui.msg='Making the PDF…';render();
+    return planPdf(w,ui.planPriv!==false).then(function(b64){
+      ui.msg='';var fn='Plan - '+w.couple.replace(/[^\w &-]/g,'')+(ui.planPriv===false?' (no notes)':'')+'.pdf';
+      var p=shareFile(fn,b64,'application/pdf','Plan - '+w.couple);
+      if(!p){ui.pdfUrl='data:application/pdf;base64,'+b64;ui.pdfName=fn}
+      render();
+    }).catch(function(e){ui.msg='Couldn’t make the PDF: '+(e&&e.message||e);render()});
+  }
+  if(a==='ics'){var ics=icsText(w),pp=shareFile('Calendar - '+w.couple.replace(/[^\w &-]/g,'')+'.ics',b64(ics),'text/calendar','Calendar - '+w.couple);if(!pp){ui.copyText=ics;render()}return}
   if(a==='askpdf'){
     ui.pdfUrl=null;ui.msg='Making the PDF\u2026';render();
     return askPdf(w).then(function(b64){
@@ -996,6 +1208,7 @@ app.addEventListener('click',function(ev){
   }
   if(a==='delw'){
     if(ui.arm!=='delw'){ui.arm='delw';return render()}
+    w.shots.forEach(function(x){if(x.photo)dropPhoto(x.photo)});
     S.weddings=S.weddings.filter(function(x){return x.id!==ui.id});ui.arm=null;ui.view='home';touch();return render();
   }
 });
@@ -1013,6 +1226,8 @@ app.addEventListener('change',function(ev){
   }
   if(el.dataset.pick&&ui.imp){ui.imp[el.dataset.pick][+el.dataset.ix].off=!el.checked;return}
   if(el.dataset.unpick!=null&&ui.imp){ui.imp.unOff=ui.imp.unOff||{};ui.imp.unOff[+el.dataset.unpick]=!el.checked;return}
+  if(el.dataset.cap){var cl=photoList(el.dataset.o);if(cl)cl.forEach(function(x){if(x.id===el.dataset.cap)x.cap=el.value});persist();return}
+  if(el.dataset.planpriv){ui.planPriv=el.checked;return}
   if(el.dataset.wetpick&&ui.imp){ui.imp.wetOff=!el.checked;return}
   if(el.dataset.rep&&ui.imp){ui.imp['rep_'+el.dataset.rep]=el.checked;return}
   var w=W();if(!w)return;
@@ -1029,6 +1244,23 @@ app.addEventListener('change',function(ev){
     return;
   }
   if(el.dataset.k&&el.dataset.i&&el.dataset.f){var it=find(w,el.dataset.k,el.dataset.i);if(it){it[el.dataset.f]=el.dataset.f==='offset'?(+el.value||0):el.value;touch()}}
+});
+document.getElementById('imgpick').addEventListener('change',function(ev){
+  var f=ev.target.files&&ev.target.files[0],t=ui.pick;ui.pick=null;if(!f||!t)return;
+  ui.msg='Adding the photo…';render();
+  storePhoto(f).then(function(ph){
+    ui.msg='';
+    if(t.kind==='venue'){var v=V(t.id);if(v){if(!Array.isArray(v.photos))v.photos=[];v.photos.push(ph)}}
+    else if(t.kind==='shot'){var ww=null;S.weddings.forEach(function(x){if(x.id===t.wid)ww=x});var it=ww&&find(ww,'shots',t.id);if(it){if(it.photo)dropPhoto(it.photo);it.photo=ph}}
+    persist();render();
+  }).catch(function(e){ui.msg='Couldn’t add the photo: '+(e&&e.message||e);render()});
+});
+document.getElementById('jsonpick').addEventListener('change',function(ev){
+  var f=ev.target.files&&ev.target.files[0];if(!f)return;
+  var r=new FileReader();r.onload=function(){var t=String(r.result||''),d=null;try{d=JSON.parse(t)}catch(e){}
+    if(!d||!Array.isArray(d.weddings)){ui.msg='That file isn’t a backup from this app.';ui.arm=null;return render()}
+    ui.restoreText=t;ui.arm='imp';ui.msg='Backup from '+(d.updatedAt?new Date(d.updatedAt).toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'an unknown date')+' with '+d.weddings.length+' booking'+(d.weddings.length===1?'':'s')+'. Tap the red button to replace everything with it.';render()};
+  r.onerror=function(){ui.msg='Couldn’t open that file.';render()};r.readAsText(f);
 });
 document.getElementById('qpdf').addEventListener('change',function(ev){
   var el=ev.target;{
@@ -1061,6 +1293,7 @@ setInterval(function(){
 setInterval(function(){var w=W();if(ui.view==='wed'&&ui.tab==='day'&&!ui.edit&&w&&w.date===todayStr()&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||''))render()},30000);
 if(APP){
   APP.addListener('backButton',function(){
+    if(ui.viewPh){ui.viewPh=null;return render()}
     if(ui.arm){ui.arm=null;return render()}
     if(ui.view==='import'){if(ui.imp){ui.imp=null;return render()}ui.view='wed';return render()}
     if(ui.view==='venue'){ui.view=ui.retWed?'wed':'venues';return render()}
