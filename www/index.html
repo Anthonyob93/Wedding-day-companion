@@ -79,7 +79,7 @@ label.btn-file{display:block}
 table.log{width:100%;border-collapse:collapse;font-size:14px}
 table.log td,table.log th{padding:8px 4px;border-top:1px solid var(--line);text-align:left}
 table.log td.n,table.log th.n{text-align:right;font-variant-numeric:tabular-nums}
-</style></head><body><div id="app"></div><script>
+</style></head><body><div id="app"></div><input type="file" accept="application/pdf,.pdf" id="qpdf" style="position:fixed;left:-9999px;width:1px;height:1px;opacity:0" tabindex="-1" aria-hidden="true"><script>
 (function(){
 'use strict';
 var LS='obwd-v1';
@@ -736,7 +736,7 @@ function rNotes(w){
 function rImport(){
   var w=W(),h='<div class="row between" style="margin:4px 0 6px">'+back(w.couple,'backwed')+'</div><h1>Fill in from questionnaire</h1>';
   if(!ui.imp){
-    h+=msg()+'<div class="card"><h3>From the PDF</h3><p class="small muted">Download the couple’s completed questionnaire from Pixieset, then choose it here.</p><label class="btn-file"><input type="file" accept="application/pdf,.pdf" id="qpdf" style="display:none"><span class="gold-btn">'+(ui.pdfBusy?'Reading…':'Choose the PDF')+'</span></label></div><div class="card"><h3>Or paste the text</h3><p class="small muted">Select all the answers, copy them and paste them here.</p><textarea id="qtext" style="min-height:160px" placeholder="Paste the questionnaire answers here"></textarea><button class="primary full" data-act="parse" style="margin-top:10px">Read answers</button></div><p class="small muted">You’ll see what was found before anything is added.</p>';
+    h+=msg()+'<div class="card"><h3>From the PDF</h3><p class="small muted">Download the couple’s completed questionnaire from Pixieset, then choose it here.</p><button class="gold full" data-act="pickpdf"'+(ui.pdfBusy?' disabled':'')+'>'+(ui.pdfBusy?'Reading…':'Choose the PDF')+'</button></div><div class="card"><h3>Or paste the text</h3><p class="small muted">Select all the answers, copy them and paste them here.</p><textarea id="qtext" style="min-height:160px" placeholder="Paste the questionnaire answers here"></textarea><button class="primary full" data-act="parse" style="margin-top:10px">Read answers</button></div><p class="small muted">You’ll see what was found before anything is added.</p>';
     return h;
   }
   var R=ui.imp,n=0;
@@ -908,6 +908,7 @@ app.addEventListener('click',function(ev){
     S.venues.push(sv);w.venueId=sv.id;persist();ui.venueId=sv.id;ui.retWed=true;ui.view='venue';window.scrollTo(0,0);return render();
   }
   if(a==='unlink'){var uv=V(w.venueId);if(uv){w.venue=uv.name;w.lat=uv.lat;w.lon=uv.lon}w.venueId=null;persist();return render()}
+  if(a==='pickpdf'){var fi=document.getElementById('qpdf');fi.value='';fi.click();return}
   if(a==='import'){ui.view='import';ui.imp=null;ui.msg='';window.scrollTo(0,0);return render()}
   if(a==='parse'){
     var txt=(document.getElementById('qtext')||{}).value||'';
@@ -936,17 +937,7 @@ app.addEventListener('click',function(ev){
 });
 app.addEventListener('change',function(ev){
   var el=ev.target;
-  if(el.id==='qpdf'){
-    var wq=W(),file=el.files&&el.files[0];
-    if(!file){ui.msg='No file came through from the picker. Try choosing it again, or use Downloads in the picker.';return render()}
-    if(!wq)return;
-    var last='Starting',finished=false,timedOut=false;
-    ui.pdfBusy=true;ui.msg='Reading '+(file.name||'the PDF')+'…';render();
-    var step=function(t){last=t;if(!finished){ui.msg=t+'…';render()}};
-    var timer=setTimeout(function(){if(finished)return;finished=true;timedOut=true;ui.pdfBusy=false;ui.msg='Reading the PDF stopped at: '+last+'. Please send me a screenshot of this message, and use paste for now.';render()},30000);
-    pdfText(file,step).then(function(t){if(finished)return;finished=true;clearTimeout(timer);if(!t.trim())throw new Error('no text found in the PDF');ui.msg='';showImport(t,wq)})
-    .catch(function(e){if(timedOut)return;finished=true;clearTimeout(timer);ui.pdfBusy=false;ui.msg='Couldn’t read the PDF ('+last+': '+(e&&e.message||e)+'). Please send me a screenshot of this message, and use paste for now.';render()});
-    return}
+
   if(el.dataset.set){var s=S.settings,k=el.dataset.set;s[k]=k==='baseName'?el.value:(isNaN(parseFloat(el.value))?DEF_SETTINGS[k]:parseFloat(el.value));persist();return render()}
   if(el.dataset.vf){
     var v=V(ui.venueId);if(!v)return;var f=el.dataset.vf;
@@ -974,6 +965,19 @@ app.addEventListener('change',function(ev){
   }
   if(el.dataset.k&&el.dataset.i&&el.dataset.f){var it=find(w,el.dataset.k,el.dataset.i);if(it){it[el.dataset.f]=el.dataset.f==='offset'?(+el.value||0):el.value;touch()}}
 });
+document.getElementById('qpdf').addEventListener('change',function(ev){
+  var el=ev.target;{
+    var wq=W(),file=el.files&&el.files[0];
+    if(!file){ui.msg='No file came through from the picker. Try choosing it again, or use Downloads in the picker.';return render()}
+    if(!wq)return;
+    var last='Starting',finished=false,timedOut=false;
+    ui.pdfBusy=true;ui.msg='Reading '+(file.name||'the PDF')+'…';render();
+    var step=function(t){last=t;if(!finished){ui.msg=t+'…';render()}};
+    var timer=setTimeout(function(){if(finished)return;finished=true;timedOut=true;ui.pdfBusy=false;ui.msg='Reading the PDF stopped at: '+last+'. Please send me a screenshot of this message, and use paste for now.';render()},30000);
+    pdfText(file,step).then(function(t){if(finished)return;finished=true;clearTimeout(timer);if(!t.trim())throw new Error('no text found in the PDF');ui.msg='';showImport(t,wq)})
+    .catch(function(e){if(timedOut)return;finished=true;clearTimeout(timer);ui.pdfBusy=false;ui.msg='Couldn’t read the PDF ('+last+': '+(e&&e.message||e)+'). Please send me a screenshot of this message, and use paste for now.';render()});
+    }
+});
 app.addEventListener('input',function(ev){
   var el=ev.target,w=W();
   if(w&&(el.dataset.w==='notes'||el.dataset.w==='wet')){w[el.dataset.w]=el.value;persist();return}
@@ -999,7 +1003,7 @@ if(APP){
     if(ui.view!=='home'){ui.view='home';ui.copyText=null;ui.live=false;stopLive();window.scrollTo(0,0);return render()}
     APP.exitApp();
   });
-  APP.addListener('resume',function(){render()});
+  APP.addListener('resume',function(){if(ui.view==='wed'&&ui.tab==='day'&&!ui.edit)render()});
 }
 render();
 schedule();
