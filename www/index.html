@@ -426,13 +426,20 @@ function parseQuestionnaire(text,booking){
   var seen={};R.timeline=R.timeline.filter(function(x){if(seen[x.time])return false;seen[x.time]=1;return true}).sort(function(a,b){return toMin(a.time)-toMin(b.time)});
   return R;
 }
-function pdfText(file){
-  return import('./pdfjs/pdf.min.js').then(function(lib){
-    lib.GlobalWorkerOptions.workerSrc='./pdfjs/pdf.worker.min.js';
-    return file.arrayBuffer().then(function(buf){return lib.getDocument({data:new Uint8Array(buf)}).promise});
-  }).then(function(doc){
+function readBuf(file){
+  if(file.arrayBuffer)return file.arrayBuffer();
+  return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(r.result)};r.onerror=function(){rej(r.error||new Error('read failed'))};r.readAsArrayBuffer(file)});
+}
+function pdfText(file,step){
+  step=step||function(){};
+  var lib;
+  step('Loading the PDF reader');
+  return import('./pdfjs/pdf.min.js').then(function(l){lib=l;step('Loading the PDF reader (2/2)');return import('./pdfjs/pdf.worker.min.js')}).then(function(wk){
+    globalThis.pdfjsWorker=wk;lib.GlobalWorkerOptions.workerSrc='./pdfjs/pdf.worker.min.js';
+    step('Opening the file');return readBuf(file);
+  }).then(function(buf){step('Reading the PDF');return lib.getDocument({data:new Uint8Array(buf),isEvalSupported:false,useWorkerFetch:false}).promise}).then(function(doc){
     var pages=[];for(var i=1;i<=doc.numPages;i++)pages.push(i);
-    return Promise.all(pages.map(function(n){return doc.getPage(n).then(function(pg){return pg.getTextContent()})})).then(function(cs){
+    return Promise.all(pages.map(function(n){return doc.getPage(n).then(function(pg){step('Reading page '+n+' of '+doc.numPages);return pg.getTextContent()})})).then(function(cs){
       return cs.map(function(c){
         var rows=[];
         c.items.forEach(function(it){if(!it.str||!it.str.trim())return;var y=it.transform[5],x=it.transform[4],r=null;
@@ -929,8 +936,17 @@ app.addEventListener('click',function(ev){
 });
 app.addEventListener('change',function(ev){
   var el=ev.target;
-  if(el.id==='qpdf'&&el.files&&el.files[0]){var wq=W();if(!wq)return;ui.pdfBusy=true;ui.msg='';render();
-    pdfText(el.files[0]).then(function(t){if(!t.trim())throw new Error('empty');showImport(t,wq)}).catch(function(e){console.log('PDFERR '+(e&&e.message));ui.pdfBusy=false;ui.msg='Couldn’t read that PDF. Try copying and pasting the text instead.';render()});return}
+  if(el.id==='qpdf'){
+    var wq=W(),file=el.files&&el.files[0];
+    if(!file){ui.msg='No file came through from the picker. Try choosing it again, or use Downloads in the picker.';return render()}
+    if(!wq)return;
+    var last='Starting',finished=false,timedOut=false;
+    ui.pdfBusy=true;ui.msg='Reading '+(file.name||'the PDF')+'…';render();
+    var step=function(t){last=t;if(!finished){ui.msg=t+'…';render()}};
+    var timer=setTimeout(function(){if(finished)return;finished=true;timedOut=true;ui.pdfBusy=false;ui.msg='Reading the PDF stopped at: '+last+'. Please send me a screenshot of this message, and use paste for now.';render()},30000);
+    pdfText(file,step).then(function(t){if(finished)return;finished=true;clearTimeout(timer);if(!t.trim())throw new Error('no text found in the PDF');ui.msg='';showImport(t,wq)})
+    .catch(function(e){if(timedOut)return;finished=true;clearTimeout(timer);ui.pdfBusy=false;ui.msg='Couldn’t read the PDF ('+last+': '+(e&&e.message||e)+'). Please send me a screenshot of this message, and use paste for now.';render()});
+    return}
   if(el.dataset.set){var s=S.settings,k=el.dataset.set;s[k]=k==='baseName'?el.value:(isNaN(parseFloat(el.value))?DEF_SETTINGS[k]:parseFloat(el.value));persist();return render()}
   if(el.dataset.vf){
     var v=V(ui.venueId);if(!v)return;var f=el.dataset.vf;
