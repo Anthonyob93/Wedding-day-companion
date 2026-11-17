@@ -564,7 +564,7 @@ function rLeads(){
   open.sort(function(a,b){return (a.followUp||'9999').localeCompare(b.followUp||'9999')});closed.sort(function(a,b){return b.created-a.created});
   function card(l){var due=l.followUp&&(l.status==='new'||l.status==='contacted')?(l.followUp<t?'<span class="pill red">Follow up overdue</span>':l.followUp===t?'<span class="pill">Follow up today</span>':'<span class="pill">Follow up '+esc(shortDate(l.followUp))+'</span>'):'<span class="pill'+(l.status==='booked'?' green':'')+'">'+esc(LSTAT[l.status]||'')+'</span>';
     return '<div class="card tap" data-act="openlead" data-l="'+l.id+'"><div class="row between"><h3>'+esc(l.name||'No name')+'</h3>'+due+'</div><div class="small muted">'+esc([LTYPE[l.type],l.date,l.where].filter(Boolean).join(' · '))+'</div></div>'}
-  var h='<div class="row between" style="margin:4px 0 12px"><h1>Enquiries</h1><button class="primary" data-act="newlead">+ Quick enquiry</button></div>'+msg();
+  var h='<div class="row between" style="margin:4px 0 12px"><h1>Enquiries</h1><button class="primary" data-act="newlead" style=\"white-space:nowrap\">+ Enquiry enquiry</button></div>'+msg();
   if(!S.leads.length)h+='<div class="card empty"><p>When someone asks about a booking in person, take their details here instead of handing over your email. The app reminds you to follow up.</p><button class="gold" data-act="newlead">Take an enquiry</button></div>';
   h+=open.map(card).join('');
   if(closed.length)h+='<h3 class="muted" style="margin:18px 0 10px">Done</h3>'+closed.map(card).join('');
