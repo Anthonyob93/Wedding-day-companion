@@ -286,12 +286,45 @@ var KNOWN=[
 [/^will any other photographers/i,'note'],[/^for bookings over five hours/i,'meal'],[/^is there anyone who shouldn'?t be photographed/i,'practical'],[/^anything else/i,'note']];
 var JUNK=/privacy notice|privacy-policy|publicity permission|promotion is requested separately|medical histories|^about others\.?$|powered by tcpdf|^ob photography$|^questionnaire$|^wedding questionnaire$|^from(\s+to)?$|^to$|^ob photography\s{2,}|^page \d+|^please complete this questionnaire|^applies to your booked coverage|^package, price or coverage|^(you and your booking|the day|the ceremony|photographs|practical)$/i;
 function noAns(s){return /^(n\/?a|none|no|nope|tbc|tba|not sure|not applicable|-+)\.?$/i.test(String(s).trim())}
+var QFULL=[
+["Booking name / reference",'booking'],["Date / time / preferred location",'datetime'],["Email / on-the-day mobile",'email'],
+["Both partners' names and preferred form of address?",'names'],["Venues, full addresses and travel between them? Include preparation locations if covered.",'venues'],
+["Agreed coverage start/end and key timings? Attach a timetable if easier.",'timings'],["Approximate guest count and contact for coordination on the day? Share their details with permission.",'guests'],
+["Ceremony rules or venue restrictions? Photography, flash, movement, access and parking.",'rules'],["Which moments are your highest priority within the booked coverage?",'priority'],
+["Essential group photographs? List up to six groups; attach a longer list only if needed.",'groups'],["Who can gather people for group photographs?",'helper'],
+["When and where would you like couple portraits? Include a wet-weather option if known.",'portraits'],["Any surprises, details or traditions you would like captured?",'surprises'],
+["Any practical needs or people who must not be photographed? Discuss sensitive matters privately.",'practical'],["Any access, travel, meal/break arrangements or final requests to agree?",'access'],
+["Your names, and how you'd like me to address you",'names'],["Wedding date and ceremony start time",'datetimeC'],["Your email address and a mobile number for the day",'email'],
+["Your contact on the day",'dayContact'],["Where is everything happening?",'venues'],["What's the timeline for the day?",'timings'],["Roughly how many guests are you expecting?",'guests'],
+["What's your plan if it rains?",'wet'],["Who is leading your ceremony, and what type of ceremony is it?",'note'],["Are there any rules about photography during the ceremony or at your venues?",'rules'],
+["Will your ceremony be unplugged?",'note'],["Will any of the ceremony or speeches be in Welsh, or include readings, music or traditions I should know about?",'note'],
+["Which moments matter most to you?",'priority'],["Who are the key people I should know about?",'keyPeople'],["Which group photographs are essential?",'groups'],
+["When and where would you like your couple portraits?",'portraits'],["Any details, surprises or traditions you'd like captured?",'surprises'],["What style or feel are you hoping for?",'note'],
+["Who can help gather people for group photographs?",'helper'],["Will any other photographers, videographers or content creators be there?",'note'],
+["For bookings over five hours: when could I take a short meal break?",'meal'],["Is there anyone who shouldn't be photographed, or any practical needs I should plan around?",'practical'],
+["Anything else I should know?",'note']];
+var QRES=QFULL.map(function(x){return new RegExp(x[0].replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/'/g,"['\u2019]").replace(/\s+/g,'\\s+'),'gi')});
+function preprocess(text){
+  var t=String(text||'').replace(/\r/g,'');
+  t=t.replace(/your answers are used (only )?to plan your booking[\s\S]*$/i,'');
+  t=t.replace(/\banswer here\b/gi,'\n');
+  var found=0;
+  QRES.forEach(function(re,i){t=t.replace(re,function(){found++;return '\n\u00a7Q'+i+'\u00a7\n'})});
+  if(found){t=t.slice(t.indexOf('\u00a7Q'));t=t.replace(/\s+(The day|The ceremony|Photographs|Practical)\s*(?=\n\u00a7Q)/g,'\n')}
+  return t;
+}
+function splitGroups(line){
+  if(line.length<45||/[;\n]|\d[.)]\s/.test(line))return [line];
+  var parts=line.split(/\s+(?=(?:Bride|Groom|Couple|Everyone|Wedding party|Both families|Immediate family|Mum|Dad|Grandparents|Bridesmaids|Groomsmen|Best man|Siblings|Children|Kids|Friends|Work friends|Uni friends)\b)/);
+  return parts.length>1?parts:[line];
+}
 function parseQuestionnaire(text,booking){
-  var lines=String(text||'').replace(/\r/g,'').replace(/’/g,"'").split('\n').map(function(l){return l.replace(/\s{2,}/g,'  ').trim()}).filter(Boolean);
+  var lines=preprocess(text).replace(/’/g,"'").split('\n').map(function(l){return l.replace(/\s{2,}/g,'  ').trim()}).filter(Boolean);
   var blocks=[],cur=null,cont=false;
   lines.forEach(function(l){
     if(JUNK.test(l)){cont=false;return}
     if(cont&&cur){cur.q+=' '+l;cont=!/[.?]\s*$/.test(l);return}
+    var mk=/^\u00a7Q(\d+)\u00a7$/.exec(l);if(mk){var qq=QFULL[+mk[1]];cur={q:qq[0],kind:qq[1],a:[]};blocks.push(cur);cont=false;return}
     var bare=l.replace(/^\d+[.)]\s*/,''),kind=null;
     for(var i=0;i<KNOWN.length;i++)if(KNOWN[i][0].test(bare)){kind=KNOWN[i][1];break}
     if(kind||(/\?\s*$/.test(l)&&l.length<220)){cur={q:bare,kind:kind,a:[]};blocks.push(cur);cont=/\?/.test(l)&&!/[.?]\s*$/.test(l);return}
@@ -311,8 +344,15 @@ function parseQuestionnaire(text,booking){
     R.contacts.push({role:r||'Contact',name:nm||fallbackName||'',phone:ph.trim()});return true;
   }
   function list(body){return splitItems(body).filter(function(x){return !noAns(x)})}
+  function splitTimes(l){
+    var re=/\b\d{1,2}(?:[:.]\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.)|\b\d{1,2}[:.]\d{2}\b/ig,idx=[],m;
+    while((m=re.exec(l)))idx.push(m.index);
+    if(idx.length<2)return [l];
+    var out=[];if(idx[0]>0&&l.slice(0,idx[0]).trim())out.push(l.slice(0,idx[0]));
+    idx.forEach(function(i,k){out.push(l.slice(i,k+1<idx.length?idx[k+1]:l.length))});return out;
+  }
   function times(body,deflt){
-    var out=[];body.forEach(function(l){var t=parseTime(l);if(t){var title=clean(t.rest);var F=/^(ish|approx(imately)?\.?|around|about|at|from|until|roughly|circa|-|\u2013)\s+|\s+(ish|approx(imately)?\.?|around|about|at|from|until|roughly|circa)$/i;for(var z=0;z<4;z++)title=clean(title.replace(F,' '));if(/^(ish|approx\.?|approximately)$/i.test(title))title='';out.push({time:t.time,title:cap(title)||deflt})}});return out;
+    var out=[];[].concat.apply([],body.map(splitTimes)).forEach(function(l){var t=parseTime(l);if(t){var title=clean(t.rest);var F=/^(ish|approx(imately)?\.?|around|about|at|from|until|roughly|circa|-|\u2013)\s+|\s+(ish|approx(imately)?\.?|around|about|at|from|until|roughly|circa)$/i;for(var z=0;z<4;z++)title=clean(title.replace(F,' '));if(/^(ish|approx\.?|approximately)$/i.test(title))title='';out.push({time:t.time,title:cap(title)||deflt})}});return out;
   }
   function generic(b){
     var q=b.q.toLowerCase(),body=b.a;
@@ -375,7 +415,7 @@ function parseQuestionnaire(text,booking){
       case 'priority':case 'surprises':
         list(body).forEach(function(x){R.shots.push({text:cap(x)})});return;
       case 'groups':
-        list(body).forEach(function(it){var m=/^(.+?)\s*[:–-]\s+(.+)$/.exec(it);R.groups.push(m?{title:cap(m[1]),people:m[2]}:{title:cap(it),people:''})});return;
+        list([].concat.apply([],body.map(splitGroups))).forEach(function(it){var m=/^(.+?)\s*[:–-]\s+(.+)$/.exec(it);R.groups.push(m?{title:cap(m[1]),people:m[2]}:{title:cap(it),people:''})});return;
       case 'helper':
         var any=false;body.forEach(function(l){if(addContact(l,'Group photo helper'))any=true});
         if(!any){var hn=clean(body.join(', '));if(hn)R.contacts.push({role:'Group photo helper',name:hn,phone:''})}
